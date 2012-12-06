@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{39E79AFA-7E2D-FBE5-E1AC-9E35FC14DDA0}</ProjectGuid>
+	<ProjectGuid>{EAC85359-A073-893B-09B6-4363B169B82F}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -49,6 +49,12 @@
      <Compile Include="Assets\Scripts\MonkeyController.js" />
      <Compile Include="Assets\Scripts\MonkeyPushBodies.js" />
      <Compile Include="Assets\Scripts\Quad.js" />
+     <Compile Include="Assets\Scripts\TerrainController.js" />
+     <Compile Include="Assets\Scripts\Triangulator.js" />
+     <Compile Include="Assets\Scripts\Vector.js" />
+     <Compile Include="Assets\Scripts\VectorField.js" />
+     <Compile Include="Assets\Scripts\VectorFieldGrid.js" />
+     <Compile Include="Assets\Shots.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\CameraRelativeControl.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\FirstPersonControl.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\FollowTransform.js" />
@@ -160,7 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass-vs.csproj">
-      <Project>{31299F52-4A3D-242B-C07F-D578AAC54ED0}</Project>      <Name>Assembly-CSharp-firstpass-vs</Name>    </ProjectReference>
+      <Project>{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}</Project>      <Name>Assembly-CSharp-firstpass-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

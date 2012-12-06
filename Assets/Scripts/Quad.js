@@ -1,3 +1,4 @@
+@script ExecuteInEditMode()
 #pragma strict
 
 function Awake() 
@@ -33,7 +34,7 @@ function Awake()
 	mesh.triangles = tri;
 	
 	mesh.Optimize();
-	
+	mesh.RecalculateNormals();
 	var mf: MeshFilter = GetComponent(MeshFilter);
 	mf.mesh = mesh;
 }
