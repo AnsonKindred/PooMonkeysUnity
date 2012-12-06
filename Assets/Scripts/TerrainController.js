@@ -40,7 +40,6 @@ class TerrainController extends MonoBehaviour
         
         if(indices == null) return false;
         
-        // Create the Vector3 vertices
         var vertices: Vector3[] = new Vector3[points.Count];
         var normals: Vector3[] = new Vector3[points.Count];
 		var textureCoords: Vector2[] = new Vector2[points.Count];
@@ -64,6 +63,42 @@ class TerrainController extends MonoBehaviour
 	    
 	    mf.mesh = mesh;
 	    
+        // Build the mesh for the collider
+        indices = new int[(points.Count-3)*6];
+        vertices = new Vector3[(points.Count-2)*2];
+        normals = new Vector3[(points.Count-2)*2];
+		
+		for (var p: int = 0; p < points.Count-3; p++)
+		{
+			i = p*6;
+			indices[i] = p;
+			indices[i+1] = p+points.Count-2;
+			indices[i+2] = p+1;
+			
+			indices[i+3] = p+1;
+			indices[i+4] = p+points.Count-2;
+			indices[i+5] = p+points.Count-1;
+		}
+		
+        for (p = 0; p < points.Count-2; p++)
+        {
+            vertices[p] = new Vector3(points[p+1].x, points[p+1].y, 0);
+            vertices[p+points.Count-2] = new Vector3(points[p+1].x, points[p+1].y, 10);
+            normals[p] = Vector3.up;
+            normals[p+points.Count-2] = Vector3.up;
+        }
+	
+		var mc: MeshCollider = GetComponent(MeshCollider);
+		
+		mesh = new Mesh();
+		mesh.vertices = vertices;
+		mesh.triangles = indices;
+		mesh.normals = normals;
+	    
+	    mc.mesh = mesh;
+	    mesh.Optimize();
+	    mesh.RecalculateBounds();
+	    
 	    return true;
 	}
 
@@ -84,12 +119,6 @@ class TerrainController extends MonoBehaviour
 		points[numSegments+2] = new Vector2(numSegments*segmentWidth, 0);
 		
 		_midPointDivision(1, numSegments+1, 0);
-		
-		for(i = 2; i < points.Count-3; i++)
-		{
-			var lastSlope: float = (points[i].y - points[i-1].y)/(points[i].x - points[i-1].x);
-			var newSlope: float = (points[i+1].y - points[i].y)/(points[i+1].x - points[i].x);
-		}
 		
 		var vectorField: VectorField = vectorFieldObject.GetComponent(MonoBehaviour);
 		

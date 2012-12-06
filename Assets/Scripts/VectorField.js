@@ -5,7 +5,7 @@ public class VectorField extends MonoBehaviour
 	public var width: float;
 	public var height: float;
 	
-	private var seedSpots: List.<Vector2> = new List.<Vector2>();
+	private var seedSpots: List.<Vector3> = new List.<Vector3>();
 	
 	function Awake()
 	{
@@ -13,7 +13,7 @@ public class VectorField extends MonoBehaviour
 		var numSeedSpots: int = Random.value*(MAX_SEED_SPOTS+1);
 		for(i = 0; i < numSeedSpots; i++)
 		{
-			seedSpots.Add(new Vector2(Random.value*width, Random.value*height));
+			seedSpots.Add(new Vector3(Random.value*width, Random.value*height, Random.value*height*.15));
 		}
 	}
 
@@ -23,16 +23,16 @@ public class VectorField extends MonoBehaviour
 		var closeSpots: int = 0;
 		for(var i = 0; i < seedSpots.Count; i++)
 		{
-			var d: float = Mathf.Sqrt(Mathf.Pow(seedSpots[i].y - y, 2) + Mathf.Pow(seedSpots[i].x - x, 2));
-			if(d <= Mathf.PI)
+			var d: float = Mathf.Sqrt(Mathf.Pow(seedSpots[i].y - y, 2) + Mathf.Pow(seedSpots[i].x - x, 2))/seedSpots[i].z;
+			if(d <= Mathf.PI/2)
 			{
 				if(i%2 == 0)
 				{
-					force += Mathf.Sin(seedSpots[i].y - y);
+					force += Mathf.Sin((seedSpots[i].y - y)/seedSpots[i].z);
 				}
 				else
 				{
-					force += Mathf.Sin(y - seedSpots[i].y);
+					force += Mathf.Sin((y - seedSpots[i].y)/seedSpots[i].z);
 				}
 				closeSpots++;
 			}
@@ -55,16 +55,16 @@ public class VectorField extends MonoBehaviour
 		var closeSpots: int = 0;
 		for(var i = 0; i < seedSpots.Count; i++)
 		{
-			var d: float = Mathf.Sqrt(Mathf.Pow(seedSpots[i].y - y, 2) + Mathf.Pow(seedSpots[i].x - x, 2));
-			if(d <= Mathf.PI)
+			var d: float = Mathf.Sqrt(Mathf.Pow(seedSpots[i].y - y, 2) + Mathf.Pow(seedSpots[i].x - x, 2))/seedSpots[i].z;
+			if(d <= Mathf.PI/2)
 			{
 				if(i%2 == 0)
 				{
-					force += Mathf.Cos((seedSpots[i].x - x) + Mathf.PI/2.0);
+					force += Mathf.Cos((seedSpots[i].x - x)/seedSpots[i].z + Mathf.PI/2.0);
 				}
 				else
 				{
-					force += Mathf.Cos((x-seedSpots[i].x) + Mathf.PI/2.0);
+					force += Mathf.Cos((x-seedSpots[i].x)/seedSpots[i].z + Mathf.PI/2.0);
 				}
 				closeSpots++;
 			}

@@ -22,9 +22,9 @@ class VectorFieldGrid extends MonoBehaviour
 			{
 				var pos: Vector3 = new Vector3(j*spacing , i*spacing, 0);
 				var instance: GameObject = Instantiate(object, pos, Quaternion.identity);
-				var script: Vector = instance.GetComponent(MonoBehaviour);
+				var script: Vector = instance.GetComponent(MonoBehaviour) as Vector;
 				script.maxLength = spacing;
-				script.vectorField = vectorFieldObject.GetComponent(MonoBehaviour);
+				script.vectorField = vectorFieldObject.GetComponent(MonoBehaviour) as VectorField;
 			}
 		}
 	}
