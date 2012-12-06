@@ -162,15 +162,10 @@ function UpdateSmoothedMovementDirection () {
 	
 	movement.isMoving = Mathf.Abs (h) > 0.1;
 	
-	if (movement.isMoving){
-		// run
-		movement.direction = Vector3 (h, 0, 0);
-	}
-	
 	// Smooth the speed based on the current target direction
 	var curSmooth = 0.0;
 	// Choose target speed
-	var targetSpeed = Mathf.Min (Mathf.Abs(h), 1.0);
+	var targetSpeed = h;
 
 	if(controller.isGrounded){
 		curSmooth = movement.speedSmoothing * Time.smoothDeltaTime;
@@ -182,7 +177,12 @@ function UpdateSmoothedMovementDirection () {
 		movement.hangTime += Time.smoothDeltaTime;
 	}
 	
-	movement.speed = Mathf.Lerp (movement.speed, targetSpeed, curSmooth);
+	var newSpeed: float = Mathf.Lerp (movement.speed*movement.direction.x, targetSpeed, curSmooth);
+	if((newSpeed > 0) != (movement.direction.x > 0))
+	{
+		movement.direction = new Vector3(h, 0, 0);
+	}
+	movement.speed = Mathf.Abs(newSpeed);
 }
 
 function AnimateCharacter() {
