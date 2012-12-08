@@ -1,4 +1,4 @@
-//TODO: make it so you cant change directios so easily, so speedsmoothing works when changing x directions;
+//TODO: does hitting your head stop your upward speed? if it hits a spot it cant move to it'll store up xVelocity and then use it upon a jump, add sliding down slopes,
 
 
 // Based off of http://unity3d.com/support/resources/tutorials/2d-gameplay-tutorial.html manipulated by Ehren von Lehe(Langman).
@@ -10,6 +10,13 @@ var canControl = true;
 
 // The character will spawn at spawnPoint's position when needed.  This could be changed via a script at runtime to implement, e.g. waypoints/savepoints.
 var spawnPoint : Transform;
+
+//var currentMovementOffset: Vector3;
+//var lastPosition: float;
+var angle: float;
+var power: float;
+
+var bulletPrefab: GameObject;
 
 class MonkeyControllerMovement {
 	// The speed when running 
@@ -166,7 +173,7 @@ function UpdateSmoothedMovementDirection () {
 	var curSmooth = 0.0;
 	// Choose target speed
 	var targetSpeed = h;
-
+	
 	if(controller.isGrounded){
 		curSmooth = movement.speedSmoothing * Time.smoothDeltaTime;
 		targetSpeed *= movement.runSpeed;
@@ -178,7 +185,7 @@ function UpdateSmoothedMovementDirection () {
 	}
 	
 	var newSpeed: float = Mathf.Lerp (movement.speed*movement.direction.x, targetSpeed, curSmooth);
-	if((newSpeed > 0) != (movement.direction.x > 0))
+	if((newSpeed >= 0) != (movement.direction.x >= 0))
 	{
 		movement.direction = new Vector3(h, 0, 0);
 	}
@@ -310,6 +317,12 @@ function DidJump () {
 	jump.buttonReleased = false;
 }
 
+//does jumping and hitting your head make you zero y velocity???
+function FixedUpdate() {
+
+	FlingPoo();
+}
+
 //might want to make the transition to FixedUpdate()
 function Update () {
 	// Make sure we are always in the 2D plane.
@@ -401,6 +414,40 @@ function OnControllerColliderHit (hit : ControllerColliderHit)
 		movement.slideX = hit.normal.x;
 	}
 }
+
+function FlingPoo ()
+{
+	var a = Input.GetAxisRaw ("Angle");
+	var p = Input.GetAxisRaw ("Power");
+
+	if (a > 0) {
+		angle++;
+	}
+	if (a < 0) {
+		angle--;
+	}
+	
+	if (p > 0) {
+		power++;
+	}
+	if (p < 0) {
+		power--;
+	}
+	//Debug.Log("power" + power);
+	//Debug.Log("angle" + angle);
+	if (Input.GetButtonDown("Fire1")) {
+       //var bullet : Rigidbody;
+
+
+//working on adding force to bullets
+    var bulletClone = Instantiate(bulletPrefab, transform.position, transform.rotation);
+    bulletClone.rigidbody.AddForce(Vector3.up * 500);
+    //bulletClone.velocity = transform.forward * power;
+    // You can also acccess other components / scripts of the clone
+   // bulletClone.GetComponent(MybulletScript).DoSomething();
+    }
+}
+
 
 // Various helper functions below:
 function GetSpeed () {

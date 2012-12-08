@@ -1,11 +1,8 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\VectorFieldGrid.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\MonkeyController.js">
     <Files>
-      <File FileName="Assets\Shots.js" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\TerrainController.js" Line="1" Column="28" />
-      <File FileName="Assets\Scripts\Quad.js" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\VectorFieldGrid.js" Line="24" Column="1" />
+      <File FileName="Assets\Scripts\MonkeyController.js" Line="1" Column="168" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
