@@ -421,27 +421,33 @@ function FlingPoo ()
 	var p = Input.GetAxisRaw ("Power");
 
 	if (a > 0) {
-		angle++;
+		angle = angle + .05;
 	}
 	if (a < 0) {
-		angle--;
+		angle = angle - .05;
 	}
-	
 	if (p > 0) {
 		power++;
 	}
 	if (p < 0) {
 		power--;
 	}
+	if (power < 0) {
+		power = 0;
+	}
+	if (power > 100) {
+		power = 100;
+	}
+	
 	//Debug.Log("power" + power);
 	//Debug.Log("angle" + angle);
 	if (Input.GetButtonDown("Fire1")) {
        //var bullet : Rigidbody;
-
+	//var weaponSpawnPosition: Vector3 = (5,5,0);
 
 //working on adding force to bullets
-    var bulletClone = Instantiate(bulletPrefab, transform.position, transform.rotation);
-    bulletClone.rigidbody.AddForce(Vector3.up * 500);
+    var bulletClone = Instantiate(bulletPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    bulletClone.rigidbody.AddForce(Mathf.Cos(angle)* 10.0 * power, Mathf.Sin(angle) * 10.0 * power, 0.0);
     //bulletClone.velocity = transform.forward * power;
     // You can also acccess other components / scripts of the clone
    // bulletClone.GetComponent(MybulletScript).DoSomething();
