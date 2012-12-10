@@ -11,12 +11,15 @@ var canControl = true;
 // The character will spawn at spawnPoint's position when needed.  This could be changed via a script at runtime to implement, e.g. waypoints/savepoints.
 var spawnPoint : Transform;
 
+var fire1: boolean;
+var fire2: boolean;
 //var currentMovementOffset: Vector3;
 //var lastPosition: float;
-var angle: float;
+static var angle: float;
 var power: float;
 
-var bulletPrefab: GameObject;
+var BulletPrefab: GameObject;
+var PooChainSpawnerPrefab: GameObject;
 
 class MonkeyControllerMovement {
 	// The speed when running 
@@ -328,6 +331,13 @@ function Update () {
 	// Make sure we are always in the 2D plane.
 	transform.position.z = 0.0;
 
+	if (Input.GetKeyDown ("1")) {
+		fire1 = true;
+	}
+	if (Input.GetKeyDown ("2")) {
+		fire2 = true;
+	}
+
 	UpdateSmoothedMovementDirection();
 	
 	AnimateCharacter();		
@@ -441,16 +451,23 @@ function FlingPoo ()
 	
 	//Debug.Log("power" + power);
 	//Debug.Log("angle" + angle);
-	if (Input.GetButtonDown("Fire1")) {
+	if (fire2) {
+	var pooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+   // pooChainClone.rigidbody.AddForce(Mathf.Cos(angle) * 10.0 * power, Mathf.Sin(angle) * 10.0 * power, 0.0);
+   fire2 = false;
+	}
+	
+	if (fire1) {
        //var bullet : Rigidbody;
 	//var weaponSpawnPosition: Vector3 = (5,5,0);
 
 //working on adding force to bullets
-    var bulletClone = Instantiate(bulletPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    var bulletClone = Instantiate(BulletPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
     bulletClone.rigidbody.AddForce(Mathf.Cos(angle)* 10.0 * power, Mathf.Sin(angle) * 10.0 * power, 0.0);
     //bulletClone.velocity = transform.forward * power;
     // You can also acccess other components / scripts of the clone
    // bulletClone.GetComponent(MybulletScript).DoSomething();
+   fire1 = false;
     }
 }
 
