@@ -18,7 +18,7 @@
 	<DebugType>full</DebugType>
 	<Optimize>false</Optimize>
 	<OutputPath>Temp\bin\Debug\</OutputPath>
-	<DefineConstants>DEBUG;TRACE;UNITY_STANDALONE;ENABLE_MICROPHONE;ENABLE_IMAGEEFFECTS;ENABLE_WEBCAM;ENABLE_AUDIO_FMOD;ENABLE_NETWORK;ENABLE_MONO;ENABLE_PHYSICS;ENABLE_TERRAIN;ENABLE_CACHING;ENABLE_SUBSTANCE;ENABLE_GENERICS;ENABLE_CLOTH;ENABLE_MOVIES;ENABLE_AUDIO;ENABLE_WWW;ENABLE_SHADOWS;ENABLE_DUCK_TYPING;UNITY_4_0_0;UNITY_4_0;UNITY_STANDALONE_WIN;ENABLE_PROFILER;UNITY_EDITOR;UNITY_TEAM_LICENSE</DefineConstants>
+	<DefineConstants>DEBUG;TRACE;UNITY_ANDROID;ENABLE_MICROPHONE;ENABLE_IMAGEEFFECTS;ENABLE_WEBCAM;ENABLE_AUDIO_FMOD;ENABLE_NETWORK;ENABLE_MONO;ENABLE_PHYSICS;ENABLE_TERRAIN;ENABLE_CACHING;ENABLE_GENERICS;UNITY_ANDROID_API;ENABLE_CLOTH;ENABLE_AUDIO;ENABLE_WWW;ENABLE_SHADOWS;UNITY_4_0_0;UNITY_4_0;ENABLE_PROFILER;UNITY_EDITOR;UNITY_TEAM_LICENSE</DefineConstants>
 	<ErrorReport>prompt</ErrorReport>
 	<WarningLevel>4</WarningLevel>
 	<NoWarn>0169</NoWarn>
@@ -44,8 +44,6 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Missile.js" />
-     <Compile Include="Assets\PooChainSpawner.js" />
      <Compile Include="Assets\Scripts\CameraScrolling.js" />
      <Compile Include="Assets\Scripts\CameraTarget.js" />
      <Compile Include="Assets\Scripts\MonkeyController.js" />
@@ -56,7 +54,6 @@
      <Compile Include="Assets\Scripts\Vector.js" />
      <Compile Include="Assets\Scripts\VectorField.js" />
      <Compile Include="Assets\Scripts\VectorFieldGrid.js" />
-     <Compile Include="Assets\Shots.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\CameraRelativeControl.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\FirstPersonControl.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\FollowTransform.js" />
@@ -69,6 +66,11 @@
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\SmoothFollow2D.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\ZoomCamera.js" />
      <Compile Include="Assets\Standard Assets (Mobile)\Scripts\tapcontrol.js" />
+     <Compile Include="Assets\Weapons\Driller.js" />
+     <Compile Include="Assets\Weapons\DrillerSpawner.js" />
+     <Compile Include="Assets\Weapons\IceCuboidSpawner.js" />
+     <Compile Include="Assets\Weapons\MirvSpawner.js" />
+     <Compile Include="Assets\Weapons\PooChainSpawner.js" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CameraMotionBlurDX11.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CreaseApply.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA3Console.shader" />

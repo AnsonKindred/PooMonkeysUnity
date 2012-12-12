@@ -13,13 +13,17 @@ var spawnPoint : Transform;
 
 var fire1: boolean;
 var fire2: boolean;
+var fire3: boolean;
+var fire4: boolean;
 //var currentMovementOffset: Vector3;
 //var lastPosition: float;
 static var angle: float;
-var power: float;
+static var power: float;
 
-var BulletPrefab: GameObject;
+var MirvSpawnerPrefab: GameObject;
 var PooChainSpawnerPrefab: GameObject;
+var DrillerSpawnerPrefab: GameObject;
+var IceCuboidSpawnerPrefab: GameObject;
 
 class MonkeyControllerMovement {
 	// The speed when running 
@@ -337,6 +341,12 @@ function Update () {
 	if (Input.GetKeyDown ("2")) {
 		fire2 = true;
 	}
+	if (Input.GetKeyDown ("3")) {
+		fire3 = true;
+	}
+	if (Input.GetKeyDown ("4")) {
+		fire4 = true;
+	}
 
 	UpdateSmoothedMovementDirection();
 	
@@ -451,23 +461,24 @@ function FlingPoo ()
 	
 	//Debug.Log("power" + power);
 	//Debug.Log("angle" + angle);
+	if (fire4) {
+	var IceCuboidSpawnerClone = Instantiate(IceCuboidSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    fire4 = false;
+	}
+	
+	if (fire3) {
+	var DrillerClone = Instantiate(DrillerSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    fire3 = false;
+	}
+	
 	if (fire2) {
-	var pooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-   // pooChainClone.rigidbody.AddForce(Mathf.Cos(angle) * 10.0 * power, Mathf.Sin(angle) * 10.0 * power, 0.0);
-   fire2 = false;
+	var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    fire2 = false;
 	}
 	
 	if (fire1) {
-       //var bullet : Rigidbody;
-	//var weaponSpawnPosition: Vector3 = (5,5,0);
-
-//working on adding force to bullets
-    var bulletClone = Instantiate(BulletPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    bulletClone.rigidbody.AddForce(Mathf.Cos(angle)* 10.0 * power, Mathf.Sin(angle) * 10.0 * power, 0.0);
-    //bulletClone.velocity = transform.forward * power;
-    // You can also acccess other components / scripts of the clone
-   // bulletClone.GetComponent(MybulletScript).DoSomething();
-   fire1 = false;
+    var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    fire1 = false;
     }
 }
 

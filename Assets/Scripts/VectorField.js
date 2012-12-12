@@ -11,7 +11,7 @@ public class VectorField extends MonoBehaviour
 	{
 		Debug.Log("Init vector field");
 		var numSeedSpots: int = Random.value*(MAX_SEED_SPOTS+1);
-		for(i = 0; i < numSeedSpots; i++)
+		for(var i = 0; i < numSeedSpots; i++)
 		{
 			seedSpots.Add(new Vector3(Random.value*width, Random.value*height, Random.value*height*.15));
 		}
