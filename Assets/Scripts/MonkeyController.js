@@ -334,7 +334,7 @@ function FixedUpdate() {
 function Update () {
 	// Make sure we are always in the 2D plane.
 	transform.position.z = 0.0;
-
+if (networkView.isMine) {
 	if (Input.GetKeyDown ("1")) {
 		fire1 = true;
 	}
@@ -420,6 +420,10 @@ function Update () {
 				movement.direction = jumpMoveDirection.normalized;
 		}
 	}
+}
+else {
+	enabled = false;
+}
 }
 
 function OnControllerColliderHit (hit : ControllerColliderHit)
