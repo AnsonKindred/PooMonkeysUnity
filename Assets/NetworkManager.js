@@ -8,19 +8,19 @@ private var hostData: HostData[];
 
 private var buttonX: float;
 private var buttonY: float;
-private var buttonW: float;
-private var buttonH: float;
+private var buttonWidth: float;
+private var buttonHeight: float;
 
 function Start() {
 	buttonX = Screen.width * .02;
-	buttonY = Screen.width * .02;
-	buttonW = Screen.width * .05;
-	buttonH = Screen.width * .05;
+	buttonY = Screen.width * .03;
+	buttonWidth = Screen.width * .05;
+	buttonHeight = Screen.width * .05;
 }
 
 function startServer() {
 	Network.InitializeServer(32, 25001, !Network.HavePublicAddress);
-	MasterServer.RegisterHost(gameName, "Start the Poo Party", "this is toots game");
+	MasterServer.RegisterHost(gameName, "Join the Poo Party", "Toot's game");
 }
 
 function refreshHostList() {
@@ -58,18 +58,18 @@ function Update () {
 
 function OnGUI () {
 	if (!Network.isClient && !Network.isServer) {
-		if (GUI.Button(Rect(buttonX, buttonY, buttonW, buttonH), "Start Server")) {
+		if (GUI.Button(Rect(buttonX, buttonY, buttonWidth, buttonHeight), "Start Server")) {
 			Debug.Log("Starting Server");
 			startServer();
 		}
 	
-		if (GUI.Button(Rect(buttonX, buttonY * 1.2 + buttonH, buttonW, buttonH), "Refresh Hosts")) {
+		if (GUI.Button(Rect(buttonX, buttonY * 1.2 + buttonHeight, buttonWidth, buttonHeight), "Refresh Hosts")) {
 			Debug.Log("Refreshing");
 			refreshHostList();
 		}
 		if (hostData) {
 			for (var i: int = 0; i < hostData.Length; i++) {
-				if(GUI.Button(Rect(buttonX * 1.5 + buttonW, buttonY * 1.2 + (buttonH * i), buttonW * 3, buttonH * .5), hostData[i].gameName)) {
+				if(GUI.Button(Rect(buttonX * 1.5 + buttonWidth, buttonY * 1.2 + (buttonHeight * i), buttonWidth * 3, buttonHeight * .5), hostData[i].gameName)) {
 					Network.Connect(hostData[i]);
 				}
 			}

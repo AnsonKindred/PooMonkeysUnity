@@ -44,6 +44,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\FollowMouse.js" />
      <Compile Include="Assets\Missile.js" />
      <Compile Include="Assets\NetworkManager.js" />
      <Compile Include="Assets\Scripts\CameraScrolling.js" />

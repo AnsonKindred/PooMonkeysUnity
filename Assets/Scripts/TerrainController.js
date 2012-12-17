@@ -1,3 +1,5 @@
+#pragma strict
+
 @script ExecuteInEditMode()
 import System.IO;
 
@@ -11,7 +13,6 @@ class TerrainController extends MonoBehaviour
 	
 	public var warpTime: int;
 	public var warpScale: float;
-	
 	public var points: List.<Vector2> = new List.<Vector2>();
 	public var segments: GameObject[];
 	
@@ -30,6 +31,149 @@ class TerrainController extends MonoBehaviour
 			_generate();
 			success = buildTerrainMesh();
 			count++;
+		}
+	}
+	
+	function Update()
+	{
+		if (Input.GetMouseButtonDown(0))
+		{		
+			var leftExplosionPointsTerrain: List.<int> = new List.<int>();
+			var rightExplosionPointsTerrain: List.<int> = new List.<int>();
+			var insideExplosionRadius: List.<int> = new List.<int>();
+			var mousePosition: Vector3 = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
+			Debug.Log("mY" + mousePosition.y);
+			Debug.Log("mX" + mousePosition.x);
+			Debug.Log("count" + points.Count);
+			
+			var explosionRadius: float = 6.0;		
+
+			var leftX: float = mousePosition.x - explosionRadius;
+			var rightX: float = mousePosition.x + explosionRadius;
+			
+			var leftPoint: Vector2;
+			var rightPoint: Vector2;
+			
+			for (var i: int = 0; i <= points.Count - 2; i++)
+			{				
+				if (points[i].x < leftX && points[i + 1].x > leftX && points[i].y > mousePosition.y - explosionRadius)
+				{
+					Debug.Log("1boobs");
+					Debug.Log(i + 1);
+					leftPoint = points[i];
+					leftExplosionPointsTerrain.Add(i + 1); //+1 so it lands inside the explosion radius
+					//leftExplosionPointsTerrain[leftExplosionPointsTerrain.Count - 1].x = i; //x becomes i position in array
+				}
+				if (points[i].x < rightX && points[i + 1].x > rightX && points[i].y > mousePosition.y - explosionRadius)
+				{
+					Debug.Log("2boobs");
+					Debug.Log(i);
+					rightPoint = points[i + 1];
+					rightExplosionPointsTerrain.Add(i); //+0 so it lands inside the explosion radius
+					//rightExplosionPointsTerrain[rightExplosionPointsTerrain.Count - 1].x = i; //x becomes i position in array
+				}
+				if (Mathf.Sqrt(Mathf.Pow(points[i].x - mousePosition.x, 2) + Mathf.Pow(points[i].y - mousePosition.y, 2)) <= explosionRadius)
+				{
+				Debug.Log("3boobs");
+				Debug.Log(i);
+					insideExplosionRadius.Add(i);
+				}
+			}
+			
+			if ((leftExplosionPointsTerrain.Count / 2.0) * 2.0 == leftExplosionPointsTerrain)
+			{
+				leftExplosionPointsTerrain = null;
+			}
+			if ((rightExplosionPointsTerrain.Count / 2.0) * 2.0 == rightExplosionPointsTerrain)
+			{
+				rightExplosionPointsTerrain = null;
+			}
+			
+			var lowestLeftPoint: int = 666666;
+			var lowestRightPoint: int = 666666;
+			
+			for (var j: int = 0; j <= leftExplosionPointsTerrain.Count - 1; j++)
+			{
+				if (leftExplosionPointsTerrain[j] < lowestLeftPoint)
+				{
+					lowestLeftPoint = leftExplosionPointsTerrain[j];
+				}
+			}
+			for (var k: int = 0; k <= rightExplosionPointsTerrain.Count - 1; k++)
+			{
+				if (rightExplosionPointsTerrain[k] < lowestRightPoint)
+				{
+					lowestRightPoint = rightExplosionPointsTerrain[k];
+				}
+			}
+			
+			for (var l: int = 0; l <= insideExplosionRadius.Count - 1; l++)
+			{ 
+				if (insideExplosionRadius == null)
+				{
+					break;
+				}
+				//Debug.Log("IER" + insideExplosionRadius[l]);
+				if (insideExplosionRadius[l] < lowestLeftPoint)
+				{
+					lowestLeftPoint = insideExplosionRadius[l];
+				}
+				if (insideExplosionRadius[l] > lowestRightPoint)
+				{
+					lowestRightPoint = insideExplosionRadius[l];
+				}
+			}
+//			if (lowestLeftPoint == 0 || lowestLeftPoint == 666666) {
+//				lowestLeftPoint = 5;
+//			}
+//			if (lowestRightPoint == 0 || lowestRightPoint == 666666) {
+//				lowestRightPoint = 6;
+//			}
+
+			Debug.Log("Removed" + lowestLeftPoint + "to" + lowestRightPoint);
+			points.RemoveRange(lowestLeftPoint, lowestRightPoint - lowestLeftPoint + 1);			
+						
+			//mousePosition.y = mousePosition.y + 10.0;
+			//points.Insert(lowestLeftPoint, mousePosition);
+			
+			var numberOfSegmentsInCircleBottom: int = explosionRadius * 2 - 1;
+			var increaseAngleBy: float = Mathf.PI / numberOfSegmentsInCircleBottom;
+			
+			var counter: int = 0;
+			
+			for (var m: int = lowestLeftPoint; m <= lowestLeftPoint + 3 + numberOfSegmentsInCircleBottom; m++)
+			{
+				if(m == lowestLeftPoint)
+				{
+					leftPoint.x = mousePosition.x - explosionRadius;
+					points.Insert(m, leftPoint);
+				}
+				if(m == lowestLeftPoint + 1)
+				{
+					leftPoint.y = mousePosition.y;
+					points.Insert(m, leftPoint);
+				}
+								
+				if (m > lowestLeftPoint + 1 && m < lowestLeftPoint + 2 + numberOfSegmentsInCircleBottom)
+				{
+					counter++;
+					var yCircleBottom: float = mousePosition.y + explosionRadius * Mathf.Sin(Mathf.PI + increaseAngleBy * counter);
+					var xCircleBottom: float = mousePosition.x + explosionRadius * Mathf.Cos(Mathf.PI + increaseAngleBy * counter);
+					var circleBottomPoint: Vector2 = Vector2(xCircleBottom, yCircleBottom);
+					points.Insert(m, circleBottomPoint);
+				}
+				if(m == lowestLeftPoint + 3 + numberOfSegmentsInCircleBottom)
+				{
+					rightPoint.y = mousePosition.y;
+					points.Insert(m - 1, rightPoint);
+				}
+				if(m == lowestLeftPoint + 2 + numberOfSegmentsInCircleBottom)
+				{
+					rightPoint.x = mousePosition.x + explosionRadius;
+					points.Insert(m, rightPoint);
+				}
+			}
+			if(!buildTerrainMesh()){Debug.Log("terrainFailed");}
 		}
 	}
 	
