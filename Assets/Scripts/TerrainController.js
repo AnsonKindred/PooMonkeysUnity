@@ -1,3 +1,5 @@
+//TODO: actually do line intersection to find the point in the top of the terrain to make and then delete the ones inside
+//      right now you are going through the entire bottom of circle and making it, even though you want to stop if the terrain is beneath the bottom of the circle in parts
 #pragma strict
 
 @script ExecuteInEditMode()
@@ -41,6 +43,7 @@ class TerrainController extends MonoBehaviour
 			var leftExplosionPointsTerrain: List.<int> = new List.<int>();
 			var rightExplosionPointsTerrain: List.<int> = new List.<int>();
 			var insideExplosionRadius: List.<int> = new List.<int>();
+			
 			var mousePosition: Vector3 = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
 			Debug.Log("mY" + mousePosition.y);
 			Debug.Log("mX" + mousePosition.x);
@@ -74,23 +77,25 @@ class TerrainController extends MonoBehaviour
 				}
 				if (Mathf.Sqrt(Mathf.Pow(points[i].x - mousePosition.x, 2) + Mathf.Pow(points[i].y - mousePosition.y, 2)) <= explosionRadius)
 				{
-				Debug.Log("3boobs");
-				Debug.Log(i);
+					Debug.Log("3boobs");
+					Debug.Log(i);
 					insideExplosionRadius.Add(i);
 				}
 			}
 			
 			if ((leftExplosionPointsTerrain.Count / 2.0) * 2.0 == leftExplosionPointsTerrain)
 			{
-				leftExplosionPointsTerrain = null;
+				leftExplosionPointsTerrain = new List.<int>();
 			}
 			if ((rightExplosionPointsTerrain.Count / 2.0) * 2.0 == rightExplosionPointsTerrain)
 			{
-				rightExplosionPointsTerrain = null;
+				rightExplosionPointsTerrain = new List.<int>();
 			}
 			
 			var lowestLeftPoint: int = 666666;
 			var lowestRightPoint: int = 666666;
+			var lowestLowestLeftPoint: int = 666666;
+			var lowestLowestRightPoint: int = 666666;
 			
 			for (var j: int = 0; j <= leftExplosionPointsTerrain.Count - 1; j++)
 			{
@@ -109,10 +114,10 @@ class TerrainController extends MonoBehaviour
 			
 			for (var l: int = 0; l <= insideExplosionRadius.Count - 1; l++)
 			{ 
-				if (insideExplosionRadius == null)
-				{
-					break;
-				}
+//				if (insideExplosionRadius == null)
+//				{
+//					break;
+//				}
 				//Debug.Log("IER" + insideExplosionRadius[l]);
 				if (insideExplosionRadius[l] < lowestLeftPoint)
 				{
@@ -123,12 +128,16 @@ class TerrainController extends MonoBehaviour
 					lowestRightPoint = insideExplosionRadius[l];
 				}
 			}
-//			if (lowestLeftPoint == 0 || lowestLeftPoint == 666666) {
-//				lowestLeftPoint = 5;
-//			}
-//			if (lowestRightPoint == 0 || lowestRightPoint == 666666) {
-//				lowestRightPoint = 6;
-//			}
+			
+			//maybe needs to not be both cause if one side is off it might not mean other side is off too
+			if (lowestLeftPoint == 666666) 
+			{
+				return;
+			}
+			if (lowestRightPoint == 666666) 
+			{
+				return;
+			}
 
 			Debug.Log("Removed" + lowestLeftPoint + "to" + lowestRightPoint);
 			points.RemoveRange(lowestLeftPoint, lowestRightPoint - lowestLeftPoint + 1);			
