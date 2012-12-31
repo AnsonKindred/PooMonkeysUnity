@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 
 Project("{40E7902A-D0E8-E286-1CA1-52337D88E533}") = "PooMonkeysUnity", "Assembly-CSharp-firstpass.csproj", "{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}"
 EndProject
+Project("{40E7902A-D0E8-E286-1CA1-52337D88E533}") = "PooMonkeysUnity", "Assembly-CSharp.csproj", "{E190EDED-1230-541B-147E-875453727F17}"
+EndProject
 Project("{40E7902A-D0E8-E286-1CA1-52337D88E533}") = "PooMonkeysUnity", "Assembly-CSharp-Editor.csproj", "{575D3E10-0E25-C6DF-4FD3-0402C7D73CE1}"
 EndProject
 Project("{40E7902A-D0E8-E286-1CA1-52337D88E533}") = "PooMonkeysUnity", "Assembly-UnityScript-firstpass.unityproj", "{DF1EA4E3-6561-3D69-D2B9-3BB8431A7166}"
@@ -21,6 +23,10 @@ Global
 		{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E190EDED-1230-541B-147E-875453727F17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E190EDED-1230-541B-147E-875453727F17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E190EDED-1230-541B-147E-875453727F17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E190EDED-1230-541B-147E-875453727F17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{575D3E10-0E25-C6DF-4FD3-0402C7D73CE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{575D3E10-0E25-C6DF-4FD3-0402C7D73CE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{575D3E10-0E25-C6DF-4FD3-0402C7D73CE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -41,7 +47,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-																																																			GlobalSection(MonoDevelopProperties) = preSolution
+																																																																									GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1

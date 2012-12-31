@@ -5,11 +5,11 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{4BCF94A2-0600-D600-248F-C338EFC7901E}</ProjectGuid>
+	<ProjectGuid>{E190EDED-1230-541B-147E-875453727F17}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
-	<AssemblyName>Assembly-UnityScript-Editor</AssemblyName>
+	<AssemblyName>Assembly-CSharp</AssemblyName>
 	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
 	<FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -44,20 +44,12 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Editor\Image Effects\AntialiasingAsPostEffectEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\BloomAndLensFlaresEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\BloomEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\CameraMotionBlurEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\ColorCorrectionCurvesEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\ColorCorrectionLutEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\DepthOfField34Editor.js" />
-     <Compile Include="Assets\Editor\Image Effects\DepthOfFieldScatterEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\EdgeDetectEffectNormalsEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\NoiseAndGrainEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\SunShaftsEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\TiltShiftEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\TonemappingEditor.js" />
-     <Compile Include="Assets\Editor\Image Effects\VignettingEditor.js" />
+     <Compile Include="Assets\Scripts\Quad.cs" />
+     <Compile Include="Assets\Scripts\TerrainController.cs" />
+     <Compile Include="Assets\Scripts\Triangulator.cs" />
+     <Compile Include="Assets\Scripts\Vector.cs" />
+     <Compile Include="Assets\Scripts\VectorField.cs" />
+     <Compile Include="Assets\Scripts\VectorFieldGrid.cs" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CameraMotionBlurDX11.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CreaseApply.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_Antialiasing\FXAA3Console.shader" />
@@ -151,19 +143,13 @@
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-Lighted.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BlendOneOne.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Particles Additive Culled.shader" />
- <Reference Include="UnityEditor.Graphs">
- <HintPath>C:\Program Files (x86)\Unity\Editor\Data\Managed\UnityEditor.Graphs.dll</HintPath>
+ <Reference Include="Assembly-UnityScript-firstpass">
+ <HintPath>Library\ScriptAssemblies\Assembly-UnityScript-firstpass.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
-    <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{DF1EA4E3-6561-3D69-D2B9-3BB8431A7166}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
-    <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{E190EDED-1230-541B-147E-875453727F17}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
-    <ProjectReference Include="Assembly-UnityScript.unityproj">
-      <Project>{EAC85359-A073-893B-09B6-4363B169B82F}</Project>      <Name>Assembly-UnityScript</Name>    </ProjectReference>
+    <ProjectReference Include="Assembly-CSharp-firstpass-vs.csproj">
+      <Project>{2CD6AA60-A2E0-B5E6-6C6B-9A87975F999A}</Project>      <Name>Assembly-CSharp-firstpass-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
