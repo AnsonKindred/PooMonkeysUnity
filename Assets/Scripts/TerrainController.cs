@@ -1,6 +1,6 @@
 //TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public, why the fuck does it have to be addRange to add a list to a list,
 //points includes bottom left of screen and bottom right of terrain as points so you dont want to use the first and last index of points when determining if the linesegment intersects with explosion circle
-//you have a problem with secondSeg or firstSeg being called twice instead it should be once each when on a corner terrain point
+//you used to have a problem with secondSeg or firstSeg being called twice instead it should be once each when on a corner terrain point?
 
 using UnityEngine;
 using System.Collections;
@@ -9,7 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 
+
+
 [ExecuteInEditMode]
+
+
 
 public class TerrainController : MonoBehaviour 
 {
@@ -18,6 +22,8 @@ public class TerrainController : MonoBehaviour
 	public int numSegments;
 	public float width;
 	public float height;
+	
+	public GameObject PooChainClone;
 	
 	public int warpTime;
 	public float warpScale;
@@ -70,11 +76,10 @@ public class TerrainController : MonoBehaviour
 			mousePosition.x = mousePositionTemp.x;
 			mousePosition.y = mousePositionTemp.y;
 			List<PointAndIndex> firstPassCircleIntersects = new List<PointAndIndex>();
-			List<PointAndIndex> leftExplosionIntersects = new List<PointAndIndex>();
-			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();
 			List<PointAndIndex> fullMagicList = new List<PointAndIndex>();
-			
 			List<BreakObject> newBreakList = new List<BreakObject>();
+			List<PointAndIndex> leftExplosionIntersects = new List<PointAndIndex>();
+			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();			
 			
 			//first pass through Points, determines all Left, Right, and Circle Intersections
 			for (int i = 0; i < points.Count - 2; i++)
@@ -98,7 +103,7 @@ public class TerrainController : MonoBehaviour
 					}
 					else //if odd Count
 					{
-						leftExplosionIntersects.Add(new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i));
+						leftExplosionIntersects.Add(new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i + 1));
 					}
 				}
 				//right circle upwards Intersections
@@ -110,7 +115,7 @@ public class TerrainController : MonoBehaviour
 					// if even Count
 					if (rightExplosionIntersects.Count % 2.0 == 0.0)
 					{
-						rightExplosionIntersects.Add(new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i + 1));
+						rightExplosionIntersects.Add(new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i));
 					}
 					else //if odd Count
 					{
@@ -153,28 +158,28 @@ public class TerrainController : MonoBehaviour
 					resultingY2 = -(d * dX + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
 					
 
-					Debug.Log("ox0 " + x0);
-					Debug.Log("oy0 " + y0);
-					Debug.Log("ox1 " + x1);
-					Debug.Log("oy1 " + y1);
-					//Debug.Log("r " + r);
-					Debug.Log("rx1 " + resultingX1);
-					Debug.Log("ry1 " + resultingY1);
-					Debug.Log("rx2 " + resultingX2);
-					Debug.Log("ry2 " + resultingY2);
-				}
-				//maybe when land goes in left direction this needs to be reworked?
-				if ((resultingX1 > x0 && resultingX1 < x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 < y0 && resultingY1 > y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 > x0 && resultingX1 < x1 && resultingY1 < y0 && resultingY1 > y1))
-				{
-					Debug.Log("firstSeg");
-					firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-				}
-				if ((resultingX2 > x0 && resultingX2 < x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 < y0 && resultingY2 > y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 > x0 && resultingX2 < x1 && resultingY2 < y0 && resultingY2 > y1))
-				{
-					Debug.Log("secondSeg");
-					secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-				}
+//					Debug.Log("ox0 " + x0);
+//					Debug.Log("oy0 " + y0);
+//					Debug.Log("ox1 " + x1);
+//					Debug.Log("oy1 " + y1);
+//					//Debug.Log("r " + r);
+//					Debug.Log("rx1 " + resultingX1);
+//					Debug.Log("ry1 " + resultingY1);
+//					Debug.Log("rx2 " + resultingX2);
+//					Debug.Log("ry2 " + resultingY2);
 				
+					//maybe when land goes in left direction this needs to be reworked?
+					if ((resultingX1 > x0 && resultingX1 < x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 < y0 && resultingY1 > y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 > x0 && resultingX1 < x1 && resultingY1 < y0 && resultingY1 > y1))
+					{
+						Debug.Log("firstSeg");
+						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
+					}
+					if ((resultingX2 > x0 && resultingX2 < x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 < y0 && resultingY2 > y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 > x0 && resultingX2 < x1 && resultingY2 < y0 && resultingY2 > y1))
+					{
+						Debug.Log("secondSeg");
+						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
+					}
+				}
 				// if two Intersections
 				//eventually need to fix this so that it deletes no indexes since both land on same linesegment
 				//right now it deletes one index for both
@@ -184,14 +189,14 @@ public class TerrainController : MonoBehaviour
 					// if Count is even
 					if (firstPassCircleIntersects.Count % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1, resultingY1), i + 1));
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2, resultingY2), i + 1));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1));
 					}
 					//if Count is odd
 					else
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1, resultingY1), i));
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2, resultingY2), i));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
 					}
 				}
 				// if only first Intersection
@@ -200,11 +205,11 @@ public class TerrainController : MonoBehaviour
 					Debug.Log("boobs2");
 					if (firstPassCircleIntersects.Count % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1, resultingY1), i + 1));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1));
 					}
 					else
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1, resultingY1), i));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i));
 					}
 				}
 				//if only second intersection
@@ -213,22 +218,23 @@ public class TerrainController : MonoBehaviour
 					Debug.Log("boobs3");
 					if (firstPassCircleIntersects.Count % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2, resultingY2), i + 1));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1));
 					}
 					else
 					{
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2, resultingY2), i));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
 					}
-				}				
+				}
 			}
 			
 			
-			PointAndIndex lowestLeftPoint = leftExplosionIntersects[0];
-			PointAndIndex lowestRightPoint = rightExplosionIntersects[0];
+			//had to do 666 thing because below this it cant use unassigned even though it would never go into that loop unless it has already gone through this one
+			PointAndIndex lowestLeftPoint = new PointAndIndex(new Vector2(666,666), 666);
+			PointAndIndex lowestRightPoint = new PointAndIndex(new Vector2(666,666), 666);
 			//if leftExplosionIntersects are odd number above, set lowest Point
-			if (leftExplosionIntersects.Count > 0 && leftExplosionIntersects.Count % 2.0 != 0.0)
+			if (leftExplosionIntersects.Count % 2.0 != 0.0)//leftexplosionintersects.count > 0
 			{
-				
+				lowestLeftPoint = leftExplosionIntersects[0];
 				for (int j = 1; j < leftExplosionIntersects.Count; j++)
 				{
 					if (leftExplosionIntersects[j].point.y < lowestLeftPoint.point.y)
@@ -236,11 +242,12 @@ public class TerrainController : MonoBehaviour
 						lowestLeftPoint = leftExplosionIntersects[j];
 					}
 				}
+				Debug.Log ("left" + lowestLeftPoint.index);
 			}
 			//if rightExplosionIntersects are odd number above, set lowest Point
-			if (rightExplosionIntersects.Count > 0 && rightExplosionIntersects.Count % 2.0 != 0.0)
+			if (rightExplosionIntersects.Count % 2.0 != 0.0)
 			{
-				
+				lowestRightPoint = rightExplosionIntersects[0];
 				for (int k = 1; k < rightExplosionIntersects.Count; k++)
 				{
 					if (rightExplosionIntersects[k].point.y < lowestRightPoint.point.y)
@@ -248,13 +255,45 @@ public class TerrainController : MonoBehaviour
 						lowestRightPoint = rightExplosionIntersects[k];
 					}
 				}
+				Debug.Log ("right" + lowestRightPoint.index);
 			}
 			
-			//drunk programming started, please review
+			//if no circleIntersects, then it's an easy break and quit
+			if (firstPassCircleIntersects.Count == 0)
+			{
+				if (leftExplosionIntersects.Count % 2.0 == 0.0 && rightExplosionIntersects.Count % 2.0 == 0.0)
+				{
+					return;
+				}
+				else
+				{
+					newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
+
+					return;
+				}
+			}
+			
+			//if circle is completely in between two indexes on points
+			if (lowestRightPoint.index < lowestLeftPoint.index)
+			{
+				lowestRightPoint.index = 666;
+				lowestLeftPoint.index = 666;
+			}
+			
+			GameObject PooChain = (GameObject)Instantiate(PooChainClone, new Vector3(lowestLeftPoint.point.x, lowestLeftPoint.point.y, -6.0f),Quaternion.identity);
+			GameObject PooChain44 = (GameObject)Instantiate(PooChainClone, new Vector3(lowestRightPoint.point.x, lowestRightPoint.point.y, -6.0f),Quaternion.identity);
+			//PooChain.rigidbody.isKinematic = true;
+			//PooChain44.rigidbody.isKinematic = true;
+			PooChain.renderer.material.color = Color.Lerp (Color.red, Color.green, 1.0f);
+			PooChain44.renderer.material.color = Color.Lerp (Color.red, Color.green, 1.0f);
+			
 			
 			// make a magicList for each circleIntersection fullMagicList
 			for (int l = 0; l < firstPassCircleIntersects.Count; l++)
-			{				
+			{
+				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -6.0f),Quaternion.identity);
+				//PooChain11.rigidbody.isKinematic = true;
+				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
 				//why the fuck does this have to be AddRange??
 				fullMagicList.AddRange(new List<PointAndIndex>());
 			}
@@ -349,13 +388,13 @@ public class TerrainController : MonoBehaviour
 					firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
 				}
 				//if final pass through loop and lowestRight has not been used
-				if (s == firstPassCircleIntersects.Count - 1 && !lowestRightPointUsed)
+				if (s == firstPassCircleIntersects.Count - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
 				{
 					newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
 					continue;
 				}
 				//if final pass through loop and lowestRight has been used
-				if (s == firstPassCircleIntersects.Count - 1 && lowestRightPointUsed)
+				if ((s == firstPassCircleIntersects.Count - 1 && lowestRightPointUsed) || lowestRightPoint.index == 666)
 				{
 					newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
 					continue;
@@ -363,11 +402,12 @@ public class TerrainController : MonoBehaviour
 				//if first pass through loop, sets start break
 				if (s == 0)
 				{
-					if (lowestLeftPoint.index < firstPassCircleIntersects[0].index)
+					if (leftExplosionIntersects.Count % 2.0 != 0.0 && lowestLeftPoint.index < firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
 					{
+						
 						startBreak = lowestLeftPoint;
 						continue;
-					}
+					}	
 					else
 					{
 						startBreak = firstPassCircleIntersects[0];
@@ -377,7 +417,7 @@ public class TerrainController : MonoBehaviour
 				//if accesing an exitCircle and is CounterClockwise
 				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
 				{
-					if (!lowestRightPointUsed)
+					if (!lowestRightPointUsed && lowestRightPoint.index != 666)
 					{
 						if (firstPassCircleIntersects[s + 1].index > lowestRightPoint.index)
 						{
@@ -421,7 +461,7 @@ public class TerrainController : MonoBehaviour
 //   			HashSet<int> hset = new HashSet<int>();
 //   			hset.Add(10);
 //   			List<int> hList= hset.ToList();
-			
+			//need to put if index == 666 then do no index breaks, just add new ones according to circle position
 			//get unique deletion indexes from newBreakList
 			List<int> everyBreakIndex = new List<int>();
 			for (int i = 0; i < newBreakList.Count; i++)
@@ -437,9 +477,10 @@ public class TerrainController : MonoBehaviour
 			{
 				i = (uniqueBreakIndex.Count - 1) - i;
 				Debug.Log("Removed" + i);
-			    points.RemoveAt(i);
+			    //points.RemoveAt(i);
+				//GameObject PooChain = (GameObject)Instantiate(PooChainClone, spawnLocation,Quaternion.identity);
 			}
-			
+			//buildTerrainMesh();
 			
 			
 
