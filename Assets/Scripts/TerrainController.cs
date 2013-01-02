@@ -277,7 +277,7 @@ public class TerrainController : MonoBehaviour
 			
 			
 			//if circle is completely in between two indexes on points
-			if (lowestRightPoint.index < lowestLeftPoint.index)
+			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
 			{
 				lowestRightPoint.index = 666;
 				lowestLeftPoint.index = 666;
@@ -287,8 +287,8 @@ public class TerrainController : MonoBehaviour
 			GameObject PooChain44 = (GameObject)Instantiate(PooChainClone, new Vector3(lowestRightPoint.point.x, lowestRightPoint.point.y, -6.0f),Quaternion.identity);
 			//PooChain.rigidbody.isKinematic = true;
 			//PooChain44.rigidbody.isKinematic = true;
-			PooChain.renderer.material.color = Color.Lerp (Color.red, Color.green, 1.0f);
-			PooChain44.renderer.material.color = Color.Lerp (Color.red, Color.green, 1.0f);
+			PooChain.renderer.material.color = Color.Lerp (Color.blue, Color.blue, 1.0f);
+			PooChain44.renderer.material.color = Color.Lerp (Color.blue, Color.blue, 1.0f);
 			
 			
 			// make a magicList for each circleIntersection fullMagicList
@@ -402,20 +402,14 @@ public class TerrainController : MonoBehaviour
 				//if final pass through loop and lowestRight has not been used
 				if (s == firstPassCircleIntersects.Count - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
 				{
-					if (lowestRightPoint.point.x == 0)
-					{
-						Debug.Log ("s1 " + s);
-					}
+					Debug.Log ("s1 " + s);
 					newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
 					continue;
 				}
 				//if final pass through loop and lowestRight has been used or does not exist
 				if (s == firstPassCircleIntersects.Count - 1 && (lowestRightPointUsed || lowestRightPoint.index == 666))
 				{
-					if (firstPassCircleIntersects[s].point.x == 0)
-					{
-						Debug.Log ("s2 " + s);
-					}
+					Debug.Log ("s2 " + s + " index" + lowestRightPoint.index);
 					newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
 					continue;
 				}
@@ -497,9 +491,9 @@ public class TerrainController : MonoBehaviour
 			
 			List<int> everyBreakIndex = new List<int>();
 			for (int i = 0; i < newBreakList.Count; i++)
-			{				
-				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 2.0f + i * 2.0f, -7.0f),Quaternion.identity);
-				GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 2.0f + i * 2.0f, -7.0f),Quaternion.identity);
+			{
+				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 2.0f + i * 5.0f, -7.0f),Quaternion.identity);
+				GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 2.0f + i * 5.0f, -7.0f),Quaternion.identity);
 				PooChain11.renderer.material.color = Color.Lerp (Color.cyan, Color.cyan, 1.0f);
 				
 				everyBreakIndex.Add (newBreakList[i].start.index);
