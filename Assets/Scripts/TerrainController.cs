@@ -1,6 +1,7 @@
 //TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public, why the fuck does it have to be addRange to add a list to a list,
 //points includes bottom left of screen and bottom right of terrain as points so you dont want to use the first and last index of points when determining if the linesegment intersects with explosion circle
-//you used to have a problem with secondSeg or firstSeg being called twice instead it should be once each when on a corner terrain point?
+//need to figure out what to do when indexes are equal when comparing breaks
+//the magic point is putting a point at 0,0 after that you need to be awesome cause dude you be firefly bang bang yo
 
 using UnityEngine;
 using System.Collections;
@@ -76,7 +77,7 @@ public class TerrainController : MonoBehaviour
 			mousePosition.x = mousePositionTemp.x;
 			mousePosition.y = mousePositionTemp.y;
 			List<PointAndIndex> firstPassCircleIntersects = new List<PointAndIndex>();
-			List<PointAndIndex> fullMagicList = new List<PointAndIndex>();
+			List<List<PointAndIndex>> fullMagicList = new List<List<PointAndIndex>>();
 			List<BreakObject> newBreakList = new List<BreakObject>();
 			List<PointAndIndex> leftExplosionIntersects = new List<PointAndIndex>();
 			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();			
@@ -258,6 +259,7 @@ public class TerrainController : MonoBehaviour
 				Debug.Log ("right" + lowestRightPoint.index);
 			}
 			
+			
 			//if no circleIntersects, then it's an easy break and quit
 			if (firstPassCircleIntersects.Count == 0)
 			{
@@ -272,6 +274,7 @@ public class TerrainController : MonoBehaviour
 					return;
 				}
 			}
+			
 			
 			//if circle is completely in between two indexes on points
 			if (lowestRightPoint.index < lowestLeftPoint.index)
@@ -292,10 +295,8 @@ public class TerrainController : MonoBehaviour
 			for (int l = 0; l < firstPassCircleIntersects.Count; l++)
 			{
 				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -6.0f),Quaternion.identity);
-				//PooChain11.rigidbody.isKinematic = true;
 				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
-				//why the fuck does this have to be AddRange??
-				fullMagicList.AddRange(new List<PointAndIndex>());
+				fullMagicList.Add(new List<PointAndIndex>());
 			}
 			
 			//second pass through Points, finding "magic" points
@@ -305,21 +306,21 @@ public class TerrainController : MonoBehaviour
 			{
 				for (int n = 0; n < firstPassCircleIntersects.Count; n++)
 				{	//<= and >= might need to be switched around so you get correct indexes
-					if (points[m].x <= firstPassCircleIntersects[n].point.x && points[m + 1].x > firstPassCircleIntersects[n].point.x || points[m].x >= firstPassCircleIntersects[n].point.x && points[m + 1].x < firstPassCircleIntersects[n].point.x)
+					if ((points[m].x <= firstPassCircleIntersects[n].point.x && points[m + 1].x > firstPassCircleIntersects[n].point.x) || (points[m].x >= firstPassCircleIntersects[n].point.x && points[m + 1].x < firstPassCircleIntersects[n].point.x))
 					{
 						float intersectX = firstPassCircleIntersects[n].point.x;
 						float intersectY = ((firstPassCircleIntersects[n].point.x - points[m].x) / (points[m + 1].x - points[m].x)) * (points[m + 1].y - points[m].y) + points[m].y;
-						if (intersectY > firstPassCircleIntersects[n].point.y)
+						if (intersectY > firstPassCircleIntersects[n].point.y + .01f) //.01f needs to be reworked maybe
 						{
 							//if even Count
-							if (fullMagicList.Count % 2.0 == 0.0)
+							if (fullMagicList[n].Count % 2.0 == 0.0)
 							{
-							fullMagicList.Add(new PointAndIndex(new Vector2(intersectX, intersectY), m + 1));
+							fullMagicList[n].Add(new PointAndIndex(new Vector2(intersectX, intersectY), m + 1));
 							}
 							//if odd Count
 							else
 							{
-							fullMagicList.Add(new PointAndIndex(new Vector2(intersectX, intersectY), m));
+							fullMagicList[n].Add(new PointAndIndex(new Vector2(intersectX, intersectY), m));
 							}
 						}
 					}
@@ -333,46 +334,57 @@ public class TerrainController : MonoBehaviour
 			PointAndIndex magicFoundFromThisPoint = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
 			for (int o = 0; o < fullMagicList.Count; o++)
 			{	//if odd Count
-				if (fullMagicList.Count % 2.0 != 0.0)//j
+				
+				for (int i = 0; i < fullMagicList[o].Count; i++)
 				{
-					PointAndIndex lowestCircleIntersect = fullMagicList[o];
-					for (int p = 1; p < fullMagicList.Count; p++)//k
+					if (fullMagicList[o].Count % 2.0 != 0.0)//j
 					{
-						if (fullMagicList[o].point.y < lowestCircleIntersect.point.y)
+						PointAndIndex lowestCircleIntersect = fullMagicList[o][i];
+						for (int p = 1; p < fullMagicList.Count; p++)//k
 						{
-							lowestCircleIntersect = fullMagicList[o];
+							if (fullMagicList[o][i].point.y < lowestCircleIntersect.point.y)
+							{
+								lowestCircleIntersect = fullMagicList[o][i];
+							}
 						}
-					}
-					for (int q = 0; q < firstPassCircleIntersects.Count; q++)
-					{
-					//might need to make this an espsilon thing because there maybe will be rounding errors
-						if (firstPassCircleIntersects[q].point.x == lowestCircleIntersect.point.x && firstPassCircleIntersects[q].point.y == lowestCircleIntersect.point.y)
+						for (int q = 0; q < firstPassCircleIntersects.Count; q++)
 						{
-							magicFoundFromThisPoint = firstPassCircleIntersects[q];
+						//might need to make this an espsilon thing because there maybe will be rounding errors
+							if (firstPassCircleIntersects[q].point.x == lowestCircleIntersect.point.x && firstPassCircleIntersects[q].point.y == lowestCircleIntersect.point.y)
+							{
+								Debug.Log ("magic found from " + magicFoundFromThisPoint.point.x);
+								Debug.Log ("magicPoint " + lowestCircleIntersect.point.x);
+								magicFoundFromThisPoint = firstPassCircleIntersects[q];
+							}
 						}
-					}
-					newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
+						newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
+					}					
 				}
+
 			}
 			//right and left intersections only start a break if they are the first break, they can end any break though by overriding circle intersections, magic points and points derived from are always breaks
 			//third pass through points, finding which exits fall within counterclockwise from first enter circle to last exit circle
 			//breaking all that exit counterclockwise
 			//impossible for lowestLeft to end any breaks?
-			Debug.Log (firstPassCircleIntersects.Count);
-			Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
-			float lastExitX = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.x - mousePosition.x;
-			float lastExitY = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.y - mousePosition.y;
+			Debug.Log ("firstpassCount" + firstPassCircleIntersects.Count);
+			Vector2 firstEnter = new Vector2(points[firstPassCircleIntersects[0].index].x - points[firstPassCircleIntersects[0].index - 1].x, points[firstPassCircleIntersects[0].index].y - points[firstPassCircleIntersects[0].index - 1].y);
+			//Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
+			float lastExitX = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].x - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].x;
+			float lastExitY = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].y - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].y;
+			//float lastExitX = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.x - mousePosition.x;
+			//float lastExitY = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.y - mousePosition.y;
 			Vector2 fromVector2 = firstEnter;
 			Vector2 toVector2 = new Vector2(lastExitX, lastExitY);
 			
 			float firstEnterToLastExitAngle = Vector2.Angle(fromVector2, toVector2);
 			Vector3 cross = Vector3.Cross(fromVector2, toVector2);
 			
-			if (cross.z > 0)
+			if (cross.z < 0)
 			{
 			    firstEnterToLastExitAngle = 360 - firstEnterToLastExitAngle;
 			}
-			Debug.Log("firstEnterToLastExitAngle" + firstEnterToLastExitAngle);
+			Debug.Log("firstEnterToLastExitAngle " + firstEnterToLastExitAngle);
+			
 			//have to assign it or it wont work, ask zeb bout better waytadodis
 			PointAndIndex startBreak = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
 			bool lowestRightPointUsed = false;
@@ -390,12 +402,20 @@ public class TerrainController : MonoBehaviour
 				//if final pass through loop and lowestRight has not been used
 				if (s == firstPassCircleIntersects.Count - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
 				{
+					if (lowestRightPoint.point.x == 0)
+					{
+						Debug.Log ("s1 " + s);
+					}
 					newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
 					continue;
 				}
-				//if final pass through loop and lowestRight has been used
-				if ((s == firstPassCircleIntersects.Count - 1 && lowestRightPointUsed) || lowestRightPoint.index == 666)
+				//if final pass through loop and lowestRight has been used or does not exist
+				if (s == firstPassCircleIntersects.Count - 1 && (lowestRightPointUsed || lowestRightPoint.index == 666))
 				{
+					if (firstPassCircleIntersects[s].point.x == 0)
+					{
+						Debug.Log ("s2 " + s);
+					}
 					newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
 					continue;
 				}
@@ -414,22 +434,31 @@ public class TerrainController : MonoBehaviour
 						continue;
 					}
 				}
-				//if accesing an exitCircle and is CounterClockwise
+				//if accesing an exitCircle and is CounterClockwise, might need to be <= firstEntertolastexitangle
 				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
 				{
 					if (!lowestRightPointUsed && lowestRightPoint.index != 666)
 					{
 						if (firstPassCircleIntersects[s + 1].index > lowestRightPoint.index)
 						{
+							if (lowestRightPoint.point.x == 0)
+							{
+								Debug.Log ("s3 " + s);
+							}
 							newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
 							startBreak = firstPassCircleIntersects[s + 1];
 							lowestRightPointUsed = true;
 							s++;
 							continue;
 						}
+						Debug.Log ("jew1");
 					}
 					else
 					{
+						if (firstPassCircleIntersects[s].point.x == 0)
+						{
+							Debug.Log ("s4 " + s);
+						}
 						newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
 						startBreak = firstPassCircleIntersects[s + 1];
 						s++;
@@ -445,6 +474,7 @@ public class TerrainController : MonoBehaviour
 				//if accessing an enterCircle and is not first pass through loop
 				if (s % 2 == 0.0 && s != 0)
 				{
+					Debug.Log ("jew");
 					if (!lowestRightPointUsed)
 					{
 						//if (lowestRightPoint.index < 
@@ -463,9 +493,15 @@ public class TerrainController : MonoBehaviour
 //   			List<int> hList= hset.ToList();
 			//need to put if index == 666 then do no index breaks, just add new ones according to circle position
 			//get unique deletion indexes from newBreakList
+			
+			
 			List<int> everyBreakIndex = new List<int>();
 			for (int i = 0; i < newBreakList.Count; i++)
-			{
+			{				
+				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 2.0f + i * 2.0f, -7.0f),Quaternion.identity);
+				GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 2.0f + i * 2.0f, -7.0f),Quaternion.identity);
+				PooChain11.renderer.material.color = Color.Lerp (Color.cyan, Color.cyan, 1.0f);
+				
 				everyBreakIndex.Add (newBreakList[i].start.index);
 				everyBreakIndex.Add (newBreakList[i].end.index);
 			}
@@ -834,7 +870,11 @@ public class TerrainController : MonoBehaviour
 			{
 				float xForce = vectorField.getXForce(points[i].x, points[i].y);
 				float yForce = vectorField.getYForce(points[i].x, points[i].y);
-				
+			if (xForce < 1.0f)
+				{
+					//Debug.Log ("<1 " + xForce + " " + yForce);	
+				}
+			
 				float nextX = Mathf.Clamp(points[i].x + xForce*warpScale, 0, width);
 				float nextY = Mathf.Clamp(points[i].y + yForce*warpScale, 1, height);
 				
