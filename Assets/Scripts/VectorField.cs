@@ -6,8 +6,8 @@ public class VectorField : MonoBehaviour {
 	
 	int MAX_SEED_SPOTS = 20;
 	
-	float width;
-	float height;
+	public float width;
+	public float height;
 	
 	List<Vector3> seedSpots = new List<Vector3>();
 	
@@ -15,6 +15,7 @@ public class VectorField : MonoBehaviour {
 	{
 		Debug.Log("Init vector field");
 		int numSeedSpots = (int) (Random.value*(MAX_SEED_SPOTS+1));
+		Debug.Log ("#seed " + numSeedSpots);
 		for(int i = 0; i < numSeedSpots; i++)
 		{
 			seedSpots.Add(new Vector3(Random.value*width, Random.value*height, Random.value*height*.15f));

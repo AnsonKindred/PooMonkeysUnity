@@ -24,6 +24,8 @@ public class TerrainController : MonoBehaviour
 	public float width;
 	public float height;
 	
+	public float EPSILON = .0001f;
+	
 	public GameObject PooChainClone;
 	
 	public int warpTime;
@@ -270,7 +272,7 @@ public class TerrainController : MonoBehaviour
 				else
 				{
 					newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
-
+					//deletePoints (newBreakList);
 					return;
 				}
 			}
@@ -294,8 +296,9 @@ public class TerrainController : MonoBehaviour
 			// make a magicList for each circleIntersection fullMagicList
 			for (int l = 0; l < firstPassCircleIntersects.Count; l++)
 			{
-				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -6.0f),Quaternion.identity);
+				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
 				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
+				PooChain11.transform.localScale -= new Vector3(2.0f,2.0f,2.0f);
 				fullMagicList.Add(new List<PointAndIndex>());
 			}
 			
@@ -310,7 +313,7 @@ public class TerrainController : MonoBehaviour
 					{
 						float intersectX = firstPassCircleIntersects[n].point.x;
 						float intersectY = ((firstPassCircleIntersects[n].point.x - points[m].x) / (points[m + 1].x - points[m].x)) * (points[m + 1].y - points[m].y) + points[m].y;
-						if (intersectY > firstPassCircleIntersects[n].point.y + .01f) //.01f needs to be reworked maybe
+						if (intersectY > firstPassCircleIntersects[n].point.y + .1f) //.01f needs to be epsilon maybe
 						{
 							//if even Count
 							if (fullMagicList[n].Count % 2.0 == 0.0)
@@ -322,6 +325,8 @@ public class TerrainController : MonoBehaviour
 							{
 							fullMagicList[n].Add(new PointAndIndex(new Vector2(intersectX, intersectY), m));
 							}
+							GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(intersectX, intersectY, -6.0f),Quaternion.identity);
+							PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.black, 1.0f);
 						}
 					}
 				}
@@ -334,31 +339,29 @@ public class TerrainController : MonoBehaviour
 			PointAndIndex magicFoundFromThisPoint = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
 			for (int o = 0; o < fullMagicList.Count; o++)
 			{	//if odd Count
-				
-				for (int i = 0; i < fullMagicList[o].Count; i++)
+				if (fullMagicList[o].Count % 2.0 != 0.0)
 				{
-					if (fullMagicList[o].Count % 2.0 != 0.0)//j
+					PointAndIndex lowestCircleIntersect = fullMagicList[o][0];
+					Debug.Log ("set lowest magic");
+					for (int i = 0; i < fullMagicList[o].Count; i++)
 					{
-						PointAndIndex lowestCircleIntersect = fullMagicList[o][i];
-						for (int p = 1; p < fullMagicList.Count; p++)//k
+						if (fullMagicList[o][i].point.y < lowestCircleIntersect.point.y)
 						{
-							if (fullMagicList[o][i].point.y < lowestCircleIntersect.point.y)
-							{
-								lowestCircleIntersect = fullMagicList[o][i];
-							}
+							lowestCircleIntersect = fullMagicList[o][i];
 						}
-						for (int q = 0; q < firstPassCircleIntersects.Count; q++)
-						{
+					}
+					for (int q = 0; q < firstPassCircleIntersects.Count; q++)
+					{
 						//might need to make this an espsilon thing because there maybe will be rounding errors
-							if (firstPassCircleIntersects[q].point.x == lowestCircleIntersect.point.x && firstPassCircleIntersects[q].point.y == lowestCircleIntersect.point.y)
-							{
-								Debug.Log ("magic found from " + magicFoundFromThisPoint.point.x);
-								Debug.Log ("magicPoint " + lowestCircleIntersect.point.x);
-								magicFoundFromThisPoint = firstPassCircleIntersects[q];
-							}
+						if (firstPassCircleIntersects[q].point.x > lowestCircleIntersect.point.x - EPSILON && firstPassCircleIntersects[q].point.x < lowestCircleIntersect.point.x + EPSILON)
+						{
+							Debug.Log ("magic found from " + magicFoundFromThisPoint.point.x);
+							Debug.Log ("magicPoint " + lowestCircleIntersect.point.x);
+							magicFoundFromThisPoint = firstPassCircleIntersects[q];
+							newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
 						}
-						newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
-					}					
+					}	
+										
 				}
 
 			}
@@ -367,12 +370,12 @@ public class TerrainController : MonoBehaviour
 			//breaking all that exit counterclockwise
 			//impossible for lowestLeft to end any breaks?
 			Debug.Log ("firstpassCount" + firstPassCircleIntersects.Count);
-			Vector2 firstEnter = new Vector2(points[firstPassCircleIntersects[0].index].x - points[firstPassCircleIntersects[0].index - 1].x, points[firstPassCircleIntersects[0].index].y - points[firstPassCircleIntersects[0].index - 1].y);
-			//Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
-			float lastExitX = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].x - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].x;
-			float lastExitY = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].y - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].y;
-			//float lastExitX = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.x - mousePosition.x;
-			//float lastExitY = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.y - mousePosition.y;
+			//Vector2 firstEnter = new Vector2(points[firstPassCircleIntersects[0].index].x - points[firstPassCircleIntersects[0].index - 1].x, points[firstPassCircleIntersects[0].index].y - points[firstPassCircleIntersects[0].index - 1].y);
+			Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
+			//float lastExitX = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].x - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].x;
+			//float lastExitY = points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index].y - points[firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index + 1].y;
+			float lastExitX = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.x - mousePosition.x;
+			float lastExitY = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.y - mousePosition.y;
 			Vector2 fromVector2 = firstEnter;
 			Vector2 toVector2 = new Vector2(lastExitX, lastExitY);
 			
@@ -475,299 +478,41 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 			}
-			//in order to get unique items in a list
-//			var items = "A B A D A C".Split(' ');
-//			var uniqueItems = new HashSet<string>(items);
-//			foreach (string s in uniqueItems)
-//    		Console.WriteLine(s);
-			//convert HashSet to List
-//			using System.Linq;
-//   			HashSet<int> hset = new HashSet<int>();
-//   			hset.Add(10);
-//   			List<int> hList= hset.ToList();
-			//need to put if index == 666 then do no index breaks, just add new ones according to circle position
-			//get unique deletion indexes from newBreakList
-			
-			
-			List<int> everyBreakIndex = new List<int>();
-			for (int i = 0; i < newBreakList.Count; i++)
+			//deletePoints (newBreakList);
+		}
+	}
+	
+	void deletePoints(List<BreakObject> newBreakList)
+	{
+		List<int> everyBreakIndex = new List<int>();
+		for (int i = 0; i < newBreakList.Count; i++)
+		{
+			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
+			GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
+			float r = Random.value;
+			float g = Random.value;
+			float b = Random.value;
+			Color jewsus = new Color(r,g,b);
+			Debug.Log ("addingtoEveryBreak");
+			PooChain11.renderer.material.color = jewsus;
+			PooChain12.renderer.material.color = jewsus;
+			for (int j = newBreakList[i].start.index; j <= newBreakList[i].end.index; j++)
 			{
-				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 2.0f + i * 5.0f, -7.0f),Quaternion.identity);
-				GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 2.0f + i * 5.0f, -7.0f),Quaternion.identity);
-				PooChain11.renderer.material.color = Color.Lerp (Color.cyan, Color.cyan, 1.0f);
-				
-				everyBreakIndex.Add (newBreakList[i].start.index);
-				everyBreakIndex.Add (newBreakList[i].end.index);
+				everyBreakIndex.Add (j);
 			}
-			HashSet<int> hset = new HashSet<int>(everyBreakIndex);
-			List<int> uniqueBreakIndex = hset.ToList ();
-			//sort list in numerical order so as not to fuck with order due to list compression after removeAt
-			uniqueBreakIndex.Sort ();
-			for (int i = 0; i < uniqueBreakIndex.Count; i++)
-			{
-				i = (uniqueBreakIndex.Count - 1) - i;
-				Debug.Log("Removed" + i);
-			    //points.RemoveAt(i);
-				//GameObject PooChain = (GameObject)Instantiate(PooChainClone, spawnLocation,Quaternion.identity);
-			}
-			//buildTerrainMesh();
-			
-			
-
-//			for (int s = 1; s < firstPassCircleIntersects.Count; s = s + 2)
-//			{
-//				Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
-//				float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
-//				Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
-//				if (cross1.z > 0)
-//				{
-//			    	firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
-//			    	if (firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
-//					{
-//						newBreakList.Add(new BreakObject(firstPassCircleIntersects[s - 1], firstPassCircleIntersects[s]));
-//					}
-//				}
-//			}
+		}
+		HashSet<int> hset = new HashSet<int>(everyBreakIndex);
+		List<int> uniqueBreakIndex = hset.ToList ();
+		//sort list in numerical order so as not to fuck with order due to list compression after removeAt
+		uniqueBreakIndex.Sort ();
+		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
+		{
+			Debug.Log("Removed" + uniqueBreakIndex[i]);
+		    points.RemoveAt(uniqueBreakIndex[i]);
+			//GameObject PooChain = (GameObject)Instantiate(PooChainClone, spawnLocation,Quaternion.identity);
 		}
 		
-//		if (Input.GetMouseButtonDown(0))
-//		{
-//			float explosionRadius = 6.0f;
-//			Vector3 mousePosition = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-//			//mousePosition.z = 0.0;
-//			
-//			List<List<PointAndIndex>> fullMagicList = new List< List<PointAndIndex> >();
-////			List<BreakList> fullBreakList = new List<BreakList>();
-//			List<BreakObject> newBreakList = new List<BreakObject>();
-//			int counter = 0;
-//			List<PointAndIndex> firstPassCircleIntersects = new List<PointAndIndex>();
-//			List<PointAndIndex> leftExplosionIntersects = new List<PointAndIndex>();
-//			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();			
-//			
-//			//first pass through Points, determines all Left, Right, and Circle Intersections
-//			for (int i = 0; i <= points.Count - 2; i++)
-//			{
-//				float leftExplosionRadiusX = mousePosition.x - explosionRadius;
-//				float rightExplosionRadiusX = mousePosition.x + explosionRadius;
-//				
-//					//<= and >= might need to be switched, so you get correct indexes
-//					//left circle upwards Intersections
-//				if (((points[i].x <= leftExplosionRadiusX && points[i + 1].x > leftExplosionRadiusX) || (points[i].x >= leftExplosionRadiusX && points[i + 1].x < leftExplosionRadiusX)) && points[i].y > mousePosition.y - explosionRadius)
-//				{
-//					Debug.Log("leftSide");
-//					float intersectLeftX = leftExplosionRadiusX;
-//					float intersectLeftY = ((leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-//					// if even Count
-//					if (leftExplosionIntersects.Count % 2.0 == 0.0)
-//					{
-//						leftExplosionIntersects.Add(new PointAndIndex(Vector2(intersectLeftX, intersectLeftY), i + 1));
-//					}
-//					else //if odd Count
-//					{
-//						leftExplosionIntersects.Add(new PointAndIndex(Vector2(intersectLeftX, intersectLeftY), i));
-//					}
-//				}
-//					//right circle upwards Intersections
-//				if (((points[i].x <= rightExplosionRadiusX && points[i + 1].x > rightExplosionRadiusX) || (points[i].x >= rightExplosionRadiusX && points[i + 1].x < rightExplosionRadiusX)) && points[i].y > mousePosition.y - explosionRadius)
-//				{
-//					Debug.Log("rightSide");
-//					float intersectRightX = rightExplosionRadiusX;
-//					float intersectRightY = ((rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-//					// if even Count
-//					if (rightExplosionIntersects.Count % 2.0 == 0.0)
-//					{
-//						rightExplosionIntersects.Add(new PointAndIndex(Vector2(intersectRightX, intersectRightY), i + 1));
-//					}
-//					else //if odd Count
-//					{
-//						rightExplosionIntersects.Add(new PointAndIndex(Vector2(intersectRightX, intersectRightY), i));
-//					}
-//				}
-//				
-////				float x0 = -10.0;
-////				float y0 = 2.0;
-////				float x1 = 10.0;
-////				float y1 = 2.0;
-////				float r = 2.0;
-//				
-////				var x0: float = mousePosition.x - points[i].x;
-////				var y0: float = mousePosition.y - points[i].y;
-////				var x1: float = mousePosition.x - points[i+1].x;
-////				var y1: float = mousePosition.y - points[i+1].y;
-////				var r: float = explosionRadius;
-//				bool negativeSqrt;
-//				bool firstIsOnLineSegment;
-//				bool secondIsOnLineSegment;
-//				
-////				if ((Mathf.Pow(-2.0*x0*y0*y1 + Mathf.Pow(2.0*x0*y1, 2) + Mathf.Pow(2.0*x1*y0, 2) - 2.0*x1*y0*y1, 2) - 4*(Mathf.Pow(-x0, 2) + 2.0*x0*x1 - Mathf.Pow(x1, 2) - Mathf.Pow(y0, 2) + 2.0*y0*y1 - Mathf.Pow(y1, 2)*(Mathf.Pow(r, 2)*Mathf.Pow(x0, 2) - 2.0*Mathf.Pow(r, 2)*x0*x1 + Mathf.Pow(r, 2)*Mathf.Pow(x1, 2) - Mathf.Pow(x0, 2)*Mathf.Pow(y1, 2) + 2.0*x0*x1*y0*y1 - Mathf.Pow(x1, 2)*Mathf.Pow(y0,2)) ) ) < 0)
-////				{
-////				//zero intersections
-////					Debug.Log("negSqrt");
-////					negativeSqrt = true;
-////				}
-//				if (!negativeSqrt)
-//				{
-//					float x0 = mousePosition.x - points[i].x;
-//					float y0 = mousePosition.y - points[i].y;
-//					float x1 = mousePosition.x - points[i+1].x;
-//					float y1 = mousePosition.y - points[i+1].y;
-//					float r = explosionRadius;
-//					
-//					float dX = x1 - x0;
-//					float dY = y1 - y0;
-//					float dR = Mathf.Sqrt (Mathf.Pow (dX, 2) + Mathf.Pow (dY, 2));
-//					float d = x0*y1 - x1*y0;
-//					float incidence = r*r * dR*dR - d*d;
-//					float resultingX1 = 0;
-//					float resultingX2 = 0;
-//					float resultingY1 = 0;
-//					float resultingY2 = 0;
-//					
-//					if (incidence > 0)
-//					{
-//						resultingX1 = (d * dY + Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-//						resultingY1 = (d * dY + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-//						resultingX2 = (d * dY + Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-//						resultingY2 = (d * dY - Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-//						
-//				PointAndIndex lowestLeftPoint = leftExplosionIntersects[0];
-//				for (int j = 1; j < leftExplosionIntersects.Count; j++)
-//				{
-//					if (leftExplosionIntersects[j].point.y < lowestLeftPoint.point.y)
-//					{
-//						lowestLeftPoint = leftExplosionIntersects[j];
-//					}
-//				}
-//			}
-//				//if rightExplosionIntersects are odd number above, set lowest Point
-//			if (rightExplosionIntersects.Count % 2.0 != 0.0)
-//			{
-//				PointAndIndex lowestRightPoint = rightExplosionIntersects[0];
-//				for (int k = 1; k < rightExplosionIntersects.Count; k++)
-//				{
-//					if (rightExplosionIntersects[k].point.y < lowestRightPoint.point.y)
-//					{
-//						lowestRightPoint = rightExplosionIntersects[k];
-//					}
-//				}
-//			}
-//			//if leftIntersect is first, make it first break
-//			//if leftIntersect is not first or null, make first circleIntersect first breakpoint
-//			fullBreakList.Add(new BreakList());
-//			PointAndIndex breakPoint1;
-//			PointAndIndex breakPoint2;
-//			Debug.Log("firstPass" + firstPassCircleIntersects.Count);
-//			if (lowestLeftPoint != null && lowestLeftPoint.index < firstPassCircleIntersects[0].index)
-//			{
-//				breakPoint1 = lowestLeftPoint;
-//			}
-//			if (lowestLeftPoint == null || lowestLeftPoint.index > firstPassCircleIntersects[0].index)
-//			{
-//				breakPoint1 = firstPassCircleIntersects[0];
-//			}
-//			//if rightIntersect is last, make it last breakpoint
-//			//if rightIntersect is not last or null, make last circleIntersect last breakpoint
-//			if (lowestRightPoint !=null && lowestRightPoint.index > firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index)
-//			{
-//				breakPoint2 = lowestRightPoint;
-//			}
-//			if (lowestRightPoint == null || lowestRightPoint.index < firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].index)
-//			{
-//				breakPoint2 = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1];
-//			}
-//			
-//			newBreakList.Add(new BreakObject(breakPoint1, breakPoint2));
-//			
-//			
-//			// make a magicList for each circleIntersection fullMagicList index corresponds to firstPassCircleIntersects index	
-//			for (int l = 0; l < firstPassCircleIntersects.Count; l++)
-//			{
-//				fullMagicList.Add(new List<PointAndIndex>());
-//			}			
-//			//second pass through Points, finding "magic" points
-//			//might want to only use magic points if its the top half of the circle thats intersected, the way it is now is if any
-//			//circle intersection has a magic point
-//			for (int m = 0; m <= points.Count - 2; m++)//i
-//			{
-//				for (int n = 0; n < firstPassCircleIntersects.Count; n++)//k
-//				{	//<= and >= might need to be switched around so you get correct indexes
-//					if (points[m].x <= firstPassCircleIntersects[n].point.x && points[m + 1].x > firstPassCircleIntersects[n].point.x || points[m].x >= firstPassCircleIntersects[n].point.x && points[m + 1].x < firstPassCircleIntersects[n].point.x)
-//					{
-//						float intersectX = firstPassCircleIntersects[n].point.x;
-//						float intersectY = ((firstPassCircleIntersects[n].point.x - points[m].x) / (points[m + 1].x - points[m].x)) * (points[m + 1].y - points[m].y) + points[m].y;
-//						if (intersectY > firstPassCircleIntersects[n].point.y)
-//						{
-//							//if even Count
-//							if (fullMagicList[n].Count % 2.0 == 0.0)
-//							{
-//							fullMagicList[n].Add(PointAndIndex(Vector2(intersectX, intersectY), m + 1));
-//							}
-//							//if odd Count
-//							else
-//							{
-//							fullMagicList[n].Add(PointAndIndex(Vector2(intersectX, intersectY), m));
-//							}
-//						}
-//					}
-//				}
-//			}
-//			
-//			//go through fullMagicList to see if there are any odd Counts and if so, determine the lowest Y value to use as
-//			//the magic value, then break every magic number to the number it was determined from
-//			for (int o = 0; o < fullMagicList.Count; o++)
-//			{	//if odd Count
-//				if (fullMagicList[o].Count % 2.0 != 0.0)//j
-//				{
-//					PointAndIndex lowestCircleIntersect = fullMagicList[o][0];
-//					for (int p = 1; p < fullMagicList[o].Count; p++)//k
-//					{
-//						if (fullMagicList[o][p].point.y < lowestCircleIntersect.point.y)
-//						{
-//							lowestCircleIntersect = fullMagicList[o][p];
-//						}
-//					}
-//					for (int q = 0; q < firstPassCircleIntersects.Count; q++)
-//					{
-//						if (firstPassCircleIntersects[q] == lowestCircleIntersect.point.x)
-//						{
-//							PointAndIndex magicFoundFromThisPoint = firstPassCircleIntersects[q];
-//						}
-//					}
-//					newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
-//				}
-//			}
-//			
-//			//third pass through points, finding which exits fall within counterclockwise from first enter circle to last exit circl
-//
-//			Vector2 firstEnter = Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
-//			float lastExitX = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.x - mousePosition.x;
-//			float lastExitY = firstPassCircleIntersects[firstPassCircleIntersects.Count - 1].point.y - mousePosition.y;
-//			Vector2 fromVector2 = firstEnter;
-//			Vector2 toVector2 = new Vector2(lastExitX, lastExitY);
-//			
-//			float firstEnterToLastExitAngle = Vector2.Angle(fromVector2, toVector2);
-//			Vector3 cross = Vector3.Cross(fromVector2, toVector2);
-//			
-//			if (cross.z > 0)
-//			{
-//			    firstEnterToLastExitAngle = 360 - firstEnterToLastExitAngle;
-//			}
-//			Debug.Log(firstEnterToLastExitAngle);
-//			for (int s = 1; s < firstPassCircleIntersects.Count; s = s + 2)
-//			{
-//				Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
-//				float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
-//				Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
-//				if (cross1.z > 0)
-//				{
-//			    	firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
-//			    	if (firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
-//					{
-//						newBreakList.Add(new BreakObject(firstPassCircleIntersects[s - 1], firstPassCircleIntersects[s]));
-//					}
-//				}
-//			}
-//		}
+		buildTerrainMesh();
 	}
 	
 	bool buildTerrainMesh()
@@ -838,7 +583,7 @@ public class TerrainController : MonoBehaviour
 	    
 	    return true;
 	}
-	void _generate() 
+	void _generate()
 	{
 		points.Clear();
 		points.Capacity = numSegments+1+2; // segments + 2 bottom points to create a polygon
@@ -857,6 +602,8 @@ public class TerrainController : MonoBehaviour
 		_midPointDivision(1, numSegments+1, 0);
 		
 		VectorField vectorField = vectorFieldObject.GetComponent("MonoBehaviour") as VectorField;
+		vectorField.width = width;
+		vectorField.height = height;
 		
 		for(int t = 0; t < warpTime; t++)
 		{
