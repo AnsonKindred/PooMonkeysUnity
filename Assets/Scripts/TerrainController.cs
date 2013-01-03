@@ -1,15 +1,11 @@
-//TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public, why the fuck does it have to be addRange to add a list to a list,
+//TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public
 //points includes bottom left of screen and bottom right of terrain as points so you dont want to use the first and last index of points when determining if the linesegment intersects with explosion circle
-//need to figure out what to do when indexes are equal when comparing breaks
-//the magic point is putting a point at 0,0 after that you need to be awesome cause dude you be firefly bang bang yo
 
 using UnityEngine;
 using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-
-
 
 
 [ExecuteInEditMode]
@@ -24,7 +20,7 @@ public class TerrainController : MonoBehaviour
 	public float width;
 	public float height;
 	
-	public float EPSILON = .0001f;
+	float EPSILON = .0001f;
 	
 	public GameObject PooChainClone;
 	
@@ -132,12 +128,6 @@ public class TerrainController : MonoBehaviour
 				float y1 = points[i+1].y - mousePosition.y;
 				float r = explosionRadius;
 				
-//				float x0 = -1.0f;
-//				float y0 = 0.0f;
-//				float x1 = 1.0f;
-//				float y1 = 0.0f;
-//				float r = 2.0f;
-				
 				bool firstIsOnLineSegment = false;
 				bool secondIsOnLineSegment = false;
 				
@@ -183,9 +173,8 @@ public class TerrainController : MonoBehaviour
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
 					}
 				}
-				// if two Intersections
-				//eventually need to fix this so that it deletes no indexes since both land on same linesegment
-				//right now it deletes one index for both
+				//if two Intersections
+				//if both land on same linesegment then later on it gets fixed to delete point 666
 				if (firstIsOnLineSegment && secondIsOnLineSegment)
 				{
 					Debug.Log("boobs1");
@@ -276,8 +265,7 @@ public class TerrainController : MonoBehaviour
 					return;
 				}
 			}
-			
-			
+						
 			//if circle is completely in between two indexes on points
 			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
 			{
@@ -291,6 +279,8 @@ public class TerrainController : MonoBehaviour
 			//PooChain44.rigidbody.isKinematic = true;
 			PooChain.renderer.material.color = Color.Lerp (Color.blue, Color.blue, 1.0f);
 			PooChain44.renderer.material.color = Color.Lerp (Color.blue, Color.blue, 1.0f);
+			PooChain.transform.localScale -= new Vector3(1.0f,1.0f,1.0f);
+			PooChain44.transform.localScale -= new Vector3(1.0f,1.0f,1.0f);
 			
 			
 			// make a magicList for each circleIntersection fullMagicList
@@ -298,7 +288,7 @@ public class TerrainController : MonoBehaviour
 			{
 				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
 				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
-				PooChain11.transform.localScale -= new Vector3(2.0f,2.0f,2.0f);
+				PooChain11.transform.localScale -= new Vector3(1.0f,1.0f,1.0f);
 				fullMagicList.Add(new List<PointAndIndex>());
 			}
 			
@@ -419,7 +409,7 @@ public class TerrainController : MonoBehaviour
 				//if first pass through loop, sets start break
 				if (s == 0)
 				{
-					if (leftExplosionIntersects.Count % 2.0 != 0.0 && lowestLeftPoint.index < firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
+					if (leftExplosionIntersects.Count % 2.0 != 0.0 && lowestLeftPoint.index <= firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
 					{
 						
 						startBreak = lowestLeftPoint;
@@ -469,6 +459,8 @@ public class TerrainController : MonoBehaviour
 					continue;
 				}
 				//if accessing an enterCircle and is not first pass through loop
+				//i dont think this ever happens, it would be an exit circle since start circle would
+				//have been added earlier and then s++ to skip to exit
 				if (s % 2 == 0.0 && s != 0)
 				{
 					Debug.Log ("jew");
@@ -478,7 +470,7 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 			}
-			//deletePoints (newBreakList);
+			deletePoints (newBreakList);
 		}
 	}
 	
@@ -508,11 +500,9 @@ public class TerrainController : MonoBehaviour
 		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
 		{
 			Debug.Log("Removed" + uniqueBreakIndex[i]);
-		    points.RemoveAt(uniqueBreakIndex[i]);
-			//GameObject PooChain = (GameObject)Instantiate(PooChainClone, spawnLocation,Quaternion.identity);
+		    //points.RemoveAt(uniqueBreakIndex[i]);
 		}
-		
-		buildTerrainMesh();
+		//buildTerrainMesh();
 	}
 	
 	bool buildTerrainMesh()
@@ -611,11 +601,11 @@ public class TerrainController : MonoBehaviour
 			{
 				float xForce = vectorField.getXForce(points[i].x, points[i].y);
 				float yForce = vectorField.getYForce(points[i].x, points[i].y);
-			if (xForce < 1.0f)
+				if (xForce < 1.0f)
 				{
 					//Debug.Log ("<1 " + xForce + " " + yForce);	
 				}
-			
+
 				float nextX = Mathf.Clamp(points[i].x + xForce*warpScale, 0, width);
 				float nextY = Mathf.Clamp(points[i].y + yForce*warpScale, 1, height);
 				
@@ -675,58 +665,5 @@ public class BreakObject
 	{
 		start = tempStart;
 		end = tempEnd;
-	}
-}
-
-class MATHHOLDA
-{
-	float Sgn (float tempDY)
-	{
-		if (tempDY < 0)
-		{
-			return -1.0f;	
-		}
-		else
-		{
-			return 1.0f;
-		}
-	}
-	
-	void METHODHOLDAH()
-	{
-		float x0 = -10.0f;
-		float y0 = 0.0f;
-		float x1 = 10.0f;
-		float y1 = 0.0f;
-		float r = 4.0f;
-		
-		float dX = x1 - x0;
-		float dY = y1 - y0;
-		float dR = Mathf.Sqrt (Mathf.Pow (dX, 2) + Mathf.Pow (dY, 2));
-		float d = x0*y1 - x1*y0;
-		float incidence = r*r * dR*dR - d*d;
-		float resultingX1;
-		float resultingX2;
-		float resultingY1;
-		float resultingY2;
-		
-		if (incidence > 0)
-		{
-			resultingX1 = (d * dY + Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-			resultingY1 = (d * dY + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-			resultingX2 = (d * dY + Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-			resultingY2 = (d * dY - Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-			
-					
-			Debug.Log("ox0 " + x0);
-			Debug.Log("oy0 " + y0);
-			Debug.Log("ox1 " + x1);
-			Debug.Log("oy1 " + y1);
-			Debug.Log("r" + r);
-			Debug.Log("rx1 " + resultingX1);
-			Debug.Log("ry1 " + resultingY1);
-			Debug.Log("rx2 " + resultingX2);
-			Debug.Log("ry2 " + resultingY2);
-		}	
 	}
 }
