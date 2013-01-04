@@ -1,5 +1,10 @@
 //TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public
 //points includes bottom left of screen and bottom right of terrain as points so you dont want to use the first and last index of points when determining if the linesegment intersects with explosion circle
+//me thinks general rule set for break and addition is to:
+//find outer most breaks and only use those(i dont think you can get it only one part within another, the whole thing is always inside, not just part?)
+//go through break list where you start at highest indexes working backwards so as not to disrupt indexes and BREAK THAT SHIT UP
+//after the single break, add points accordingly(backwards), it will be start index?
+//GENERAL IDEA: if the point at end index is not on circle edge, make a point at it and then go straight down until you are on the circles edge and add points until you reach and end of that break around the circle until at end index Xvalue, then place a point at the start index and it should all be dandy dancy cotton go fuck yourself
 
 using UnityEngine;
 using System.Collections;
@@ -251,6 +256,18 @@ public class TerrainController : MonoBehaviour
 			}
 			
 			
+			//if circle is completely in between two indexes on points
+			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
+			{
+				lowestRightPoint.index = 666; //want it to be itself foraccess later durring breaks
+				//lowestLeftPoint.index = 666;
+				//adds these to break list, will have to deal with indexes being 666 when breaking, basically will be
+				//no break and will instead make points at points specified and then circle blah blah
+				newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
+				deletePoints (newBreakList);
+				return;
+			}
+			
 			//if no circleIntersects, then it's an easy break and quit
 			if (firstPassCircleIntersects.Count == 0)
 			{
@@ -264,14 +281,9 @@ public class TerrainController : MonoBehaviour
 					//deletePoints (newBreakList);
 					return;
 				}
-			}
-						
-			//if circle is completely in between two indexes on points
-			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
-			{
-				lowestRightPoint.index = 666;
-				lowestLeftPoint.index = 666;
-			}
+			}						
+
+			
 			
 			GameObject PooChain = (GameObject)Instantiate(PooChainClone, new Vector3(lowestLeftPoint.point.x, lowestLeftPoint.point.y, -6.0f),Quaternion.identity);
 			GameObject PooChain44 = (GameObject)Instantiate(PooChainClone, new Vector3(lowestRightPoint.point.x, lowestRightPoint.point.y, -6.0f),Quaternion.identity);
@@ -479,6 +491,16 @@ public class TerrainController : MonoBehaviour
 		List<int> everyBreakIndex = new List<int>();
 		for (int i = 0; i < newBreakList.Count; i++)
 		{
+			if 	(newBreakList[i].start.index > newBreakList[i].end.index)
+			{
+				//want to do no breaking, just want to add points accordingly(probably general rules) since the points both fall
+				//within the same line segment
+				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y - 15));
+				buildTerrainMesh();
+				Debug.Log ("count=1 666");
+				//dont think i want return, probably just a continue
+				return;
+			}
 			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
 			GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
 			float r = Random.value;
@@ -500,9 +522,9 @@ public class TerrainController : MonoBehaviour
 		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
 		{
 			Debug.Log("Removed" + uniqueBreakIndex[i]);
-		    //points.RemoveAt(uniqueBreakIndex[i]);
+		    points.RemoveAt(uniqueBreakIndex[i]);
 		}
-		//buildTerrainMesh();
+		buildTerrainMesh();
 	}
 	
 	bool buildTerrainMesh()
