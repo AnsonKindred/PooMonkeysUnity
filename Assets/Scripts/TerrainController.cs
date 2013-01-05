@@ -492,15 +492,23 @@ public class TerrainController : MonoBehaviour
 		//determine which indexes fall within others, because when break it adds points at start and end
 		List<int> insideIndexes = new List<int>();
 		for (int i = 0; i < newBreakList.Count; i++)
-		{
+		{	
+			Debug.Log ("before " + i);
+			Debug.Log ("start" + newBreakList[i].start.point.x);
+			Debug.Log ("end" + newBreakList[i].end.point.x);
 			for (int j = 0; j < newBreakList.Count; j++)
 			{
-				if (newBreakList[i].start.index > newBreakList[j].start.index && newBreakList[i].end.index < newBreakList[j].end.index)
+				if (j == i)
+				{
+					continue;
+				}
+				if (newBreakList[i].start.index >= newBreakList[j].start.index && newBreakList[i].end.index <= newBreakList[j].end.index)
 				{
 					insideIndexes.Add (i);
 				}
 			}
 		}
+		
 		HashSet<int> hset = new HashSet<int>(insideIndexes);
 		List<int> uniqueBreakIndex = hset.ToList ();
 		//sort list in numerical order so as not to fuck with order due to list compression after removeAt
@@ -508,7 +516,14 @@ public class TerrainController : MonoBehaviour
 		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
 		{
 			newBreakList.RemoveAt (i);
-		}		
+		}
+		
+		for (int i = 0; i < newBreakList.Count; i++)
+		{	
+			Debug.Log ("after " + i);
+			Debug.Log ("start" + newBreakList[i].start.point.x);
+			Debug.Log ("end" + newBreakList[i].end.point.x);
+		}
 		
 		//might want to pass in mouse position so it isnt possible to be different
 		Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -546,7 +561,7 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 				float y2 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
-				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y2));
+				//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y2));
 				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, newBreakList[i].start.point.y));
 				//buildTerrainMesh();
 				continue;
@@ -560,15 +575,15 @@ public class TerrainController : MonoBehaviour
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
 			for (float j = newBreakList[i].end.point.x; j >= newBreakList[i].start.point.x; j--)
 			{
-				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
-				{
+				//if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
+				//{
 					Debug.Log ("J" + j);
 					float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
 					points.Insert(newBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
-				}
+				//}
 			}
 			float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
-			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y3));
+			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y3));
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, newBreakList[i].start.point.y));
 
 //			for (int j = newBreakList[i].start.index; j <= newBreakList[i].end.index; j++)
