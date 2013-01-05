@@ -501,14 +501,16 @@ public class TerrainController : MonoBehaviour
 				}
 			}
 		}
-		//insideIndexes.Sort ();
-		for (int i = insideIndexes.Count - 1; i >=0; i--)
+		HashSet<int> hset = new HashSet<int>(insideIndexes);
+		List<int> uniqueBreakIndex = hset.ToList ();
+		//sort list in numerical order so as not to fuck with order due to list compression after removeAt
+		uniqueBreakIndex.Sort ();
+		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
 		{
 			newBreakList.RemoveAt (i);
-		}
+		}		
 		
-		
-		//might want to pass in mouse position so it isnt different
+		//might want to pass in mouse position so it isnt possible to be different
 		Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
 		Vector2 mousePosition;
 		mousePosition.x = mousePositionTemp.x;
@@ -516,7 +518,7 @@ public class TerrainController : MonoBehaviour
 		
 		for (int i = newBreakList.Count - 1; i >= 0; i--)
 		{
-			List<int> everyBreakIndex = new List<int>();
+			//List<int> everyBreakIndex = new List<int>();
 			
 			//drawing balls on screen at break points
 //			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
@@ -525,7 +527,6 @@ public class TerrainController : MonoBehaviour
 			float g = Random.value;
 			float b = Random.value;
 			Color jewsus = new Color(r,g,b);
-			Debug.Log ("addingtoEveryBreak");
 //			PooChain11.renderer.material.color = jewsus;
 //			PooChain12.renderer.material.color = jewsus;
 			
@@ -536,16 +537,16 @@ public class TerrainController : MonoBehaviour
 				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
 				for (float j = newBreakList[i].end.point.x; j >= newBreakList[i].start.point.x; j--)
 				{
-					Debug.Log ("j-mouseX" + (j-mousePosition.x));
+					//Debug.Log ("j-mouseX" + (j-mousePosition.x));
 					if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 					{
-						Debug.Log ("J" + j);
+						//Debug.Log ("J" + j);
 						float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
 						points.Insert(newBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
 					}
 				}
 				float y2 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
-				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y - y2));
+				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y2));
 				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, newBreakList[i].start.point.y));
 				//buildTerrainMesh();
 				continue;
@@ -567,7 +568,7 @@ public class TerrainController : MonoBehaviour
 				}
 			}
 			float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
-			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y - y3));
+			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y3));
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, newBreakList[i].start.point.y));
 
 //			for (int j = newBreakList[i].start.index; j <= newBreakList[i].end.index; j++)
