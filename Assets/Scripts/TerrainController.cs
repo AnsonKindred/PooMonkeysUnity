@@ -6,6 +6,7 @@
 //after the single break, add points accordingly(backwards), it will be start index?
 //GENERAL IDEA: if the point at end index is not on circle edge, make a point at it and then go straight down until you are on the circles edge and add points until you reach and end of that break around the circle until at end index Xvalue, then place a point at the start index and it should all be dandy dancy cotton go fuck yourself
 
+//check out 4 segs
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -127,12 +128,15 @@ public class TerrainController : MonoBehaviour
 						rightExplosionIntersects.Add(new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i));
 					}
 				}
+				
+				
 				//line segment Circle intersections
 				float x0 = points[i].x - mousePosition.x;
 				float y0 = points[i].y - mousePosition.y;
 				float x1 = points[i+1].x - mousePosition.x;
 				float y1 = points[i+1].y - mousePosition.y;
 				float r = explosionRadius;
+				
 				
 				bool firstIsOnLineSegment = false;
 				bool secondIsOnLineSegment = false;
@@ -157,23 +161,24 @@ public class TerrainController : MonoBehaviour
 					resultingY2 = -(d * dX + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
 					
 
-//					Debug.Log("ox0 " + x0);
-//					Debug.Log("oy0 " + y0);
-//					Debug.Log("ox1 " + x1);
-//					Debug.Log("oy1 " + y1);
+					Debug.Log("ox0 " + x0);
+					Debug.Log("oy0 " + y0);
+					Debug.Log("ox1 " + x1);
+					Debug.Log("oy1 " + y1);
 //					//Debug.Log("r " + r);
-//					Debug.Log("rx1 " + resultingX1);
-//					Debug.Log("ry1 " + resultingY1);
-//					Debug.Log("rx2 " + resultingX2);
-//					Debug.Log("ry2 " + resultingY2);
+					Debug.Log("rx1 " + resultingX1);
+					Debug.Log("ry1 " + resultingY1);
+					Debug.Log("rx2 " + resultingX2);
+					Debug.Log("ry2 " + resultingY2);
 				
 					//maybe when land goes in left direction this needs to be reworked?
-					if ((resultingX1 > x0 && resultingX1 < x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 < y0 && resultingY1 > y1) || (resultingX1 < x0 && resultingX1 > x1 && resultingY1 > y0 && resultingY1 < y1) || (resultingX1 > x0 && resultingX1 < x1 && resultingY1 < y0 && resultingY1 > y1))
+					//might need to be just > and < not =
+					if ((resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 <= y0 && resultingY1 >= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 <= y0 && resultingY1 >= y1))
 					{
 						Debug.Log("firstSeg");
 						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
 					}
-					if ((resultingX2 > x0 && resultingX2 < x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 < y0 && resultingY2 > y1) || (resultingX2 < x0 && resultingX2 > x1 && resultingY2 > y0 && resultingY2 < y1) || (resultingX2 > x0 && resultingX2 < x1 && resultingY2 < y0 && resultingY2 > y1))
+					if ((resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 <= y0 && resultingY2 >= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 <= y0 && resultingY2 >= y1))
 					{
 						Debug.Log("secondSeg");
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
@@ -193,6 +198,7 @@ public class TerrainController : MonoBehaviour
 					//if Count is odd
 					else
 					{
+						Debug.Log ("jew");
 						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i));
 						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
 					}
@@ -223,6 +229,11 @@ public class TerrainController : MonoBehaviour
 						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
 					}
 				}
+			}
+			
+			for (int i = 0; i < firstPassCircleIntersects.Count; i++)
+			{
+				Debug.Log ("firstpassi" + i + " " + firstPassCircleIntersects[i].point);
 			}
 			
 			
@@ -498,7 +509,7 @@ public class TerrainController : MonoBehaviour
 	//just be add at magic point and derived from and then end
 	
 	//currently if the same start and end are in multple breaks, it will keep them all, but it will just delete and make same points again
-	//will want to get rid of this for speeder maybe later toots
+	//will want to get rid of this for speeder maybe later tuts
 	void deletePoints(List<BreakObject> newBreakList)
 	{
 		//determine which indexes fall within others, because when break it adds points at start and end
@@ -609,7 +620,7 @@ public class TerrainController : MonoBehaviour
 			{
 //				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //				{
-					Debug.Log ("J" + j);
+					//Debug.Log ("J" + j);
 					float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
 					points.Insert(newBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
 //				}
