@@ -308,7 +308,7 @@ public class TerrainController : MonoBehaviour
 			//second pass through Points, finding "magic" points
 //			//might want to only use magic points if its the top half of the circle thats intersected, the way it is now is if any
 //			//circle intersection has a magic point ...not too sure...
-			for (int m = 0; m < points.Count - 1; m++)//i
+			for (int m = 0; m < points.Count - 1; m++)//the -1 is there for a reason dumbass
 			{
 				for (int n = 0; n < firstPassCircleIntersects.Count; n++)
 				{	//<= and >= might need to be switched around so you get correct indexes
@@ -361,7 +361,14 @@ public class TerrainController : MonoBehaviour
 							//Debug.Log ("magic found from " + magicFoundFromThisPoint.point.x);
 							//Debug.Log ("magicPoint " + lowestCircleIntersect.point.x);
 							magicFoundFromThisPoint = firstPassCircleIntersects[q];
+							if (lowestCircleIntersect.index > magicFoundFromThisPoint.index)
+							{
+							newBreakList.Add(new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect));
+							}
+							else
+							{
 							newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
+							}
 						}
 					}	
 										
@@ -382,6 +389,9 @@ public class TerrainController : MonoBehaviour
 			Vector2 fromVector2 = firstEnter;
 			Vector2 toVector2 = new Vector2(lastExitX, lastExitY);
 			
+			Debug.Log ("firstCircle" + firstEnter);
+			Debug.Log ("lastCircle" + toVector2);
+			
 			float firstEnterToLastExitAngle = Vector2.Angle(fromVector2, toVector2);
 			Vector3 cross = Vector3.Cross(fromVector2, toVector2);
 			
@@ -397,6 +407,7 @@ public class TerrainController : MonoBehaviour
 			//PointAndIndex currentEnterPoint = firstPassCircleIntersects[0];
 			for (int s = 0; s < firstPassCircleIntersects.Count; s = s + 1)
 			{
+
 				Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
 				float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
 				Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
@@ -405,6 +416,7 @@ public class TerrainController : MonoBehaviour
 				{
 					firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
 				}
+				Debug.Log ("firstEnterCurrentExitAngle" + firstEnterToCurrentExitAngle);
 				//if final pass through loop and lowestRight has not been used
 				if (s == firstPassCircleIntersects.Count - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
 				{
@@ -437,21 +449,17 @@ public class TerrainController : MonoBehaviour
 				//if accesing an exitCircle and is CounterClockwise, might need to be <= firstEntertolastexitangle
 				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
 				{
-					if (!lowestRightPointUsed && lowestRightPoint.index != 666)
+					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index)
 					{
-						if (firstPassCircleIntersects[s + 1].index > lowestRightPoint.index)
+						if (lowestRightPoint.point.x == 0)
 						{
-							if (lowestRightPoint.point.x == 0)
-							{
-								Debug.Log ("s3 " + s);
-							}
-							newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
-							startBreak = firstPassCircleIntersects[s + 1];
-							lowestRightPointUsed = true;
-							s++;
-							continue;
+							Debug.Log ("s3 " + s);
 						}
-						Debug.Log ("jew1");
+						newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
+						startBreak = firstPassCircleIntersects[s + 1];
+						lowestRightPointUsed = true;
+						s++;
+						continue;
 					}
 					else
 					{
@@ -486,7 +494,11 @@ public class TerrainController : MonoBehaviour
 			deletePoints (newBreakList);
 		}
 	}
+	//when there aer no bottom circle points you are trying to draw them anyway, i.e top of circle and shit, justbreak magic points, so it'd 
+	//just be add at magic point and derived from and then end
 	
+	//currently if the same start and end are in multple breaks, it will keep them all, but it will just delete and make same points again
+	//will want to get rid of this for speeder maybe later toots
 	void deletePoints(List<BreakObject> newBreakList)
 	{
 		//determine which indexes fall within others, because when break it adds points at start and end
@@ -494,8 +506,8 @@ public class TerrainController : MonoBehaviour
 		for (int i = 0; i < newBreakList.Count; i++)
 		{	
 			Debug.Log ("before " + i);
-			Debug.Log ("start" + newBreakList[i].start.point.x);
-			Debug.Log ("end" + newBreakList[i].end.point.x);
+			Debug.Log ("start " + newBreakList[i].start.index + " end " + newBreakList[i].end.index);
+			//Debug.Log ("end" + newBreakList[i].end.point.x);
 			for (int j = 0; j < newBreakList.Count; j++)
 			{
 				if (j == i)
@@ -504,26 +516,44 @@ public class TerrainController : MonoBehaviour
 				}
 				if (newBreakList[i].start.index >= newBreakList[j].start.index && newBreakList[i].end.index <= newBreakList[j].end.index)
 				{
+					if (newBreakList[i].start.index == newBreakList[j].start.index && newBreakList[i].end.index == newBreakList[j].end.index)
+					{
+						newBreakList.RemoveAt(i);
+						i--;
+						break;
+						continue;
+					}
+					Debug.Log ("insideIndex " + i);
 					insideIndexes.Add (i);
 				}
 			}
 		}
-		
-		HashSet<int> hset = new HashSet<int>(insideIndexes);
-		List<int> uniqueBreakIndex = hset.ToList ();
+		insideIndexes.Sort ();
+		//HashSet<int> hset = new HashSet<int>(insideIndexes);
+		//List<int> uniqueBreakIndex = hset.ToList ();
 		//sort list in numerical order so as not to fuck with order due to list compression after removeAt
-		uniqueBreakIndex.Sort ();
-		for (int i = uniqueBreakIndex.Count - 1; i >= 0; i--)
+		//uniqueBreakIndex.Sort ();
+		for (int i = insideIndexes.Count - 1; i >= 0; i--)
 		{
-			newBreakList.RemoveAt (i);
+			newBreakList.RemoveAt (insideIndexes[i]);
 		}
 		
 		for (int i = 0; i < newBreakList.Count; i++)
 		{	
 			Debug.Log ("after " + i);
-			Debug.Log ("start" + newBreakList[i].start.point.x);
-			Debug.Log ("end" + newBreakList[i].end.point.x);
+			Debug.Log ("start " + newBreakList[i].start.index + " end " + newBreakList[i].end.index);
+			//Debug.Log ("end" + newBreakList[i].end.point.x);
 		}
+		
+		newBreakList.Sort ((x,y) => x.start.index == y.start.index ? 0 : (x.start.index < y.start.index ? -1 : 1));
+				
+		for (int i = 0; i < newBreakList.Count; i++)
+		{	
+			Debug.Log ("afterSort " + i);
+			Debug.Log ("start " + newBreakList[i].start.index + " end " + newBreakList[i].end.index);
+			//Debug.Log ("end" + newBreakList[i].end.point.x);
+		}
+		
 		
 		//might want to pass in mouse position so it isnt possible to be different
 		Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -544,11 +574,11 @@ public class TerrainController : MonoBehaviour
 			Color jewsus = new Color(r,g,b);
 //			PooChain11.renderer.material.color = jewsus;
 //			PooChain12.renderer.material.color = jewsus;
-			
+				
+			//want to do no breaking, just want to add points accordingly(probably general rules) since the points both fall
+			//within the same line segment			
 			if 	(newBreakList[i].start.index > newBreakList[i].end.index)
 			{
-				//want to do no breaking, just want to add points accordingly(probably general rules) since the points both fall
-				//within the same line segment
 				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
 				for (float j = newBreakList[i].end.point.x; j >= newBreakList[i].start.point.x; j--)
 				{
@@ -566,23 +596,25 @@ public class TerrainController : MonoBehaviour
 				//buildTerrainMesh();
 				continue;
 			}
+			
 			for (int k = newBreakList[i].end.index; k >= newBreakList[i].start.index; k--)
 			{
-				Debug.Log ("remove" + k);
+				Debug.Log ("remove " + newBreakList[i].end.index + "to " + newBreakList[i].start.index);
 				points.RemoveAt (k);
 			}
 			
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
-			for (float j = newBreakList[i].end.point.x; j >= newBreakList[i].start.point.x; j--)
+			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, mousePosition.y));
+			for (float j = newBreakList[i].end.point.x - 1; j >= newBreakList[i].start.point.x; j--)
 			{
-				//if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
-				//{
+//				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
+//				{
 					Debug.Log ("J" + j);
 					float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
 					points.Insert(newBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
-				//}
+//				}
 			}
-			float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
+			//float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList[i].start.point.x - mousePosition.x, 2));
 			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, mousePosition.y));// - y3));
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].start.point.x, newBreakList[i].start.point.y));
 
