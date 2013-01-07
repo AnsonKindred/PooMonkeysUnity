@@ -663,9 +663,6 @@ public class TerrainController : MonoBehaviour
 			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, mousePosition.y));
 			for (float j = newBreakList[i].end.point.x - 1; j >= newBreakList[i].start.point.x; j--)
 			{
-				//want to tell if the position should even draw at the bottom of the circle
-				//sometimes you just want the start and end position to be placed with no circle shit, like with a magic point horseshoe
-				//old way of thinking was if its greater than radius away, dont make it, break it
 //				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //				{
 					//Debug.Log ("J" + j);
@@ -701,8 +698,25 @@ public class TerrainController : MonoBehaviour
 //			PooChain.transform.localScale -= new Vector3(1.0f,1.0f,1.0f);
 //			PooChain.renderer.material.color = jewsus;
 //		}
-		Debug.Log ("buildTerrain");
-		buildTerrainMesh();
+		
+		//this is probably done wrong
+		//right now this might only work when curve is in correct direction
+	 	bool success = false;
+	 	success = buildTerrainMesh();
+		if (success == false)
+		{
+			Debug.Log ("buildTerrainFAILED");
+			for (int i = 0; i < points.Count - 1; i++)
+			{
+				Vector2 intersectionPoint = segmentIntersection (points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, newBreakList[0].start.point.x, newBreakList[0].start.point.y, newBreakList[newBreakList.Count - 1].end.point.x, newBreakList[newBreakList.Count - 1].end.point.y);
+				if (intersectionPoint != new Vector2(666,666))
+				{
+					points.RemoveRange (newBreakList[newBreakList.Count - 1].end.index, i);
+					points.Insert(i, intersectionPoint);
+				}
+			}
+		}
+		Debug.Log ("buildTerrainMesh()");
 	}
 	
 	bool buildTerrainMesh()
@@ -843,6 +857,32 @@ public class TerrainController : MonoBehaviour
 		
 		_midPointDivision(start, midPoint, depth + 1);
 		_midPointDivision(midPoint, end, depth + 1);
+	}
+	
+	Vector2 segmentIntersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) 
+	{
+		float bx = x2 - x1;
+		float bY = y2 - y1;
+		float dx = x4 - x3;
+		float dy = y4 - y3;
+		float b_dot_d_perp = bx * dy - bY * dx;
+		if(b_dot_d_perp == 0) 
+		{
+		  return new Vector2(666,666);
+		}
+		float cx = x3 - x1;
+		float cy = y3 - y1;
+		float t = (cx * dy - cy * dx) / b_dot_d_perp;
+		if(t < 0 || t > 1) 
+		{
+		  return new Vector2(666,666);
+		}
+		float u = (cx * bY - cy * bx) / b_dot_d_perp;
+		if(u < 0 || u > 1) 
+		{ 
+		  return new Vector2(666,666);
+		}
+		return new Vector2(x1 + t * bx, y1 + t * bY);
 	}
 }
 
