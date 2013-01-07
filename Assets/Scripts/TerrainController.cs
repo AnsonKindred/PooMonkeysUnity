@@ -6,7 +6,7 @@
 //after the single break, add points accordingly(backwards), it will be start index?
 //GENERAL IDEA: if the point at end index is not on circle edge, make a point at it and then go straight down until you are on the circles edge and add points until you reach and end of that break around the circle until at end index Xvalue, then place a point at the start index and it should all be dandy dancy cotton go fuck yourself
 
-//check out 4 segs
+//1-6-13 check out 4 segs, i think everything is actually working, when terrainBuild is invalid you are going to want to draw a line from startbreak to end break, then check if it intersects with any lineSegments from Points[], if it does you draw a line from the start to the intersect and break from intersect to end
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -160,8 +160,39 @@ public class TerrainController : MonoBehaviour
 					resultingX2 = (d * dY - Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
 					resultingY2 = -(d * dX + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
 					
-
-					Debug.Log("ox0 " + x0);
+					float distance01 = Mathf.Sqrt((resultingX1 - x0) * (resultingX1 - x0) + (resultingY1 - y0) * (resultingY1 - y0));
+					float distance02 = Mathf.Sqrt((resultingX2 - x0) * (resultingX2 - x0) + (resultingY2 - y0) * (resultingY2 - y0));
+					//float distance11 = Mathf.Sqrt((resultingX1 - x1) * (resultingX1 - x1) + (resultingY1 - y1) * (resultingY1 - y1));
+					//float distance12 = Mathf.Sqrt((resultingX2 - x1) * (resultingX2 - x1) + (resultingY2 - y1) * (resultingY2 - y1));
+					
+					bool D1greaterthanD2 = false;
+					if (distance01 > distance02)
+					{
+						D1greaterthanD2 = true;
+						float tempResultX = resultingX1;
+						float tempResultY = resultingY1;
+						resultingX1 = resultingX2;
+						resultingY1 = resultingY2;
+						resultingX2 = tempResultX;
+						resultingY2 = tempResultY;
+					}
+//					Debug.Log("ox0 " + x0);
+//					Debug.Log("oy0 " + y0);
+//					Debug.Log("ox1 " + x1);
+//					Debug.Log("oy1 " + y1);
+////					//Debug.Log("r " + r);
+//					Debug.Log("rx1 " + resultingX1);
+//					Debug.Log("ry1 " + resultingY1);
+//					Debug.Log("rx2 " + resultingX2);
+//					Debug.Log("ry2 " + resultingY2);
+				
+					//maybe when land goes in left direction this needs to be reworked?
+					//might need to be just > and < not =
+					if ((resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 <= y0 && resultingY1 >= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 <= y0 && resultingY1 >= y1))
+					{
+						Debug.Log("firstResult");
+						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
+											Debug.Log("ox0 " + x0);
 					Debug.Log("oy0 " + y0);
 					Debug.Log("ox1 " + x1);
 					Debug.Log("oy1 " + y1);
@@ -170,18 +201,28 @@ public class TerrainController : MonoBehaviour
 					Debug.Log("ry1 " + resultingY1);
 					Debug.Log("rx2 " + resultingX2);
 					Debug.Log("ry2 " + resultingY2);
-				
-					//maybe when land goes in left direction this needs to be reworked?
-					//might need to be just > and < not =
-					if ((resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 <= y0 && resultingY1 >= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 <= y0 && resultingY1 >= y1))
-					{
-						Debug.Log("firstSeg");
-						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
+						if (D1greaterthanD2)
+						{
+							Debug.Log ("distance01>distance02");
+						}
 					}
 					if ((resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 <= y0 && resultingY2 >= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 <= y0 && resultingY2 >= y1))
 					{
-						Debug.Log("secondSeg");
+						Debug.Log("secondResult");
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
+											Debug.Log("ox0 " + x0);
+					Debug.Log("oy0 " + y0);
+					Debug.Log("ox1 " + x1);
+					Debug.Log("oy1 " + y1);
+//					//Debug.Log("r " + r);
+					Debug.Log("rx1 " + resultingX1);
+					Debug.Log("ry1 " + resultingY1);
+					Debug.Log("rx2 " + resultingX2);
+					Debug.Log("ry2 " + resultingY2);
+							if (D1greaterthanD2)
+						{
+							Debug.Log ("distance01>distance02");
+						}
 					}
 				}
 				//if two Intersections
@@ -505,7 +546,7 @@ public class TerrainController : MonoBehaviour
 			deletePoints (newBreakList);
 		}
 	}
-	//when there aer no bottom circle points you are trying to draw them anyway, i.e top of circle and shit, justbreak magic points, so it'd 
+	//when there are no bottom circle points you are trying to draw them anyway, i.e top of circle and shit, justbreak magic points, so it'd 
 	//just be add at magic point and derived from and then end
 	
 	//currently if the same start and end are in multple breaks, it will keep them all, but it will just delete and make same points again
@@ -515,7 +556,7 @@ public class TerrainController : MonoBehaviour
 		//determine which indexes fall within others, because when break it adds points at start and end
 		List<int> insideIndexes = new List<int>();
 		for (int i = 0; i < newBreakList.Count; i++)
-		{	
+		{
 			Debug.Log ("before " + i);
 			Debug.Log ("start " + newBreakList[i].start.index + " end " + newBreakList[i].end.index);
 			//Debug.Log ("end" + newBreakList[i].end.point.x);
@@ -531,11 +572,15 @@ public class TerrainController : MonoBehaviour
 					{
 						newBreakList.RemoveAt(i);
 						i--;
+						Debug.Log ("i got deleted for not being unique");
 						break;
-						continue;
+						//continue;
 					}
 					Debug.Log ("insideIndex " + i);
-					insideIndexes.Add (i);
+					newBreakList.RemoveAt (i);
+					i--;
+					break;
+					//insideIndexes.Add (i);
 				}
 			}
 		}
@@ -550,7 +595,7 @@ public class TerrainController : MonoBehaviour
 		}
 		
 		for (int i = 0; i < newBreakList.Count; i++)
-		{	
+		{
 			Debug.Log ("after " + i);
 			Debug.Log ("start " + newBreakList[i].start.index + " end " + newBreakList[i].end.index);
 			//Debug.Log ("end" + newBreakList[i].end.point.x);
@@ -579,10 +624,10 @@ public class TerrainController : MonoBehaviour
 			//drawing balls on screen at break points
 //			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].start.point.x, newBreakList[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
 //			GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList[i].end.point.x, newBreakList[i].end.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
-			float r = Random.value;
-			float g = Random.value;
-			float b = Random.value;
-			Color jewsus = new Color(r,g,b);
+//			float r = Random.value;
+//			float g = Random.value;
+//			float b = Random.value;
+//			Color jewsus = new Color(r,g,b);
 //			PooChain11.renderer.material.color = jewsus;
 //			PooChain12.renderer.material.color = jewsus;
 				
@@ -618,6 +663,9 @@ public class TerrainController : MonoBehaviour
 			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, mousePosition.y));
 			for (float j = newBreakList[i].end.point.x - 1; j >= newBreakList[i].start.point.x; j--)
 			{
+				//want to tell if the position should even draw at the bottom of the circle
+				//sometimes you just want the start and end position to be placed with no circle shit, like with a magic point horseshoe
+				//old way of thinking was if its greater than radius away, dont make it, break it
 //				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //				{
 					//Debug.Log ("J" + j);
@@ -642,6 +690,16 @@ public class TerrainController : MonoBehaviour
 //		{
 //			Debug.Log("Removed" + uniqueBreakIndex[i]);
 //		    points.RemoveAt(uniqueBreakIndex[i]);
+//		}
+//	 	float r = Random.value;
+//		float g = Random.value;
+//		float b = Random.value;
+//		Color jewsus = new Color(r,g,b);
+//		for (int i = 0; i < points.Count; i++)
+//		{
+//			GameObject PooChain = (GameObject)Instantiate(PooChainClone, new Vector3(points[i].x, points[i].y, -6.0f),Quaternion.identity);
+//			PooChain.transform.localScale -= new Vector3(1.0f,1.0f,1.0f);
+//			PooChain.renderer.material.color = jewsus;
 //		}
 		Debug.Log ("buildTerrain");
 		buildTerrainMesh();
