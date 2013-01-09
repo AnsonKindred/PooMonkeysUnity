@@ -7,6 +7,11 @@
 //GENERAL IDEA: if the point at end index is not on circle edge, make a point at it and then go straight down until you are on the circles edge and add points until you reach and end of that break around the circle until at end index Xvalue, then place a point at the start index and it should all be dandy dancy cotton go fuck yourself
 
 //1-6-13 check out 4 segs, i think everything is actually working, when terrainBuild is invalid you are going to want to draw a line from startbreak to end break, then check if it intersects with any lineSegments from Points[], if it does you draw a line from the start to the intersect and break from intersect to end
+
+//so you dont get odd number > 1 circleIntersection counts
+//if next point has 2 intersections, ignore
+//if next point has 1 intersection and end point is inside radius, ignore
+//if next point has 1 intersection and end point is outside radius, use it up
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -39,6 +44,8 @@ public class TerrainController : MonoBehaviour
 	public GameObject vectorFieldObject;
 	
 	bool doneGenerating = false;
+	
+	public Vector3 mousePositionYo;
 	
 	
 	// Use this for initialization
@@ -73,10 +80,10 @@ public class TerrainController : MonoBehaviour
 	{	//figure out how to tell if circle intersection is tangent cause it'll f everything up, you want to ignore the single
 		//circle intersection
 		// indexes selected are the ones you want to destroy
-		
+		mousePositionYo = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
 		
 		if (Input.GetMouseButtonDown(0))
-		{			
+		{
 			Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
 			Vector2 mousePosition;
 			mousePosition.x = mousePositionTemp.x;
@@ -187,20 +194,21 @@ public class TerrainController : MonoBehaviour
 //					Debug.Log("ry2 " + resultingY2);
 				
 					//maybe when land goes in left direction this needs to be reworked?
-					//might need to be just > and < not =
+					//if the result lands on endpoints, have to figure out a way to use it only if it crosses and doesnt stay on same side of circle
+					//maybe if points+1 > explosionRadius from mousePosition then we know it crossed to outside the circle
 					if ((resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 <= y0 && resultingY1 >= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 <= y0 && resultingY1 >= y1))
 					{
 						Debug.Log("firstResult");
 						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-											Debug.Log("ox0 " + x0);
-					Debug.Log("oy0 " + y0);
-					Debug.Log("ox1 " + x1);
-					Debug.Log("oy1 " + y1);
-//					//Debug.Log("r " + r);
-					Debug.Log("rx1 " + resultingX1);
-					Debug.Log("ry1 " + resultingY1);
-					Debug.Log("rx2 " + resultingX2);
-					Debug.Log("ry2 " + resultingY2);
+						Debug.Log("ox0 " + x0);
+						Debug.Log("oy0 " + y0);
+						Debug.Log("ox1 " + x1);
+						Debug.Log("oy1 " + y1);
+//						//Debug.Log("r " + r);
+						Debug.Log("rx1 " + resultingX1);
+						Debug.Log("ry1 " + resultingY1);
+						Debug.Log("rx2 " + resultingX2);
+						Debug.Log("ry2 " + resultingY2);
 						if (D1greaterthanD2)
 						{
 							Debug.Log ("distance01>distance02");
@@ -210,16 +218,16 @@ public class TerrainController : MonoBehaviour
 					{
 						Debug.Log("secondResult");
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-											Debug.Log("ox0 " + x0);
-					Debug.Log("oy0 " + y0);
-					Debug.Log("ox1 " + x1);
-					Debug.Log("oy1 " + y1);
-//					//Debug.Log("r " + r);
-					Debug.Log("rx1 " + resultingX1);
-					Debug.Log("ry1 " + resultingY1);
-					Debug.Log("rx2 " + resultingX2);
-					Debug.Log("ry2 " + resultingY2);
-							if (D1greaterthanD2)
+						Debug.Log("ox0 " + x0);
+						Debug.Log("oy0 " + y0);
+						Debug.Log("ox1 " + x1);
+						Debug.Log("oy1 " + y1);
+	//					//Debug.Log("r " + r);
+						Debug.Log("rx1 " + resultingX1);
+						Debug.Log("ry1 " + resultingY1);
+						Debug.Log("rx2 " + resultingX2);
+						Debug.Log("ry2 " + resultingY2);
+						if (D1greaterthanD2)
 						{
 							Debug.Log ("distance01>distance02");
 						}
@@ -233,8 +241,9 @@ public class TerrainController : MonoBehaviour
 					// if Count is even
 					if (firstPassCircleIntersects.Count % 2.0 == 0.0)
 					{
+						//both might need to be i+1
 						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1));
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
 					}
 					//if Count is odd
 					else
@@ -274,7 +283,7 @@ public class TerrainController : MonoBehaviour
 			
 			for (int i = 0; i < firstPassCircleIntersects.Count; i++)
 			{
-				Debug.Log ("firstpassi" + i + " " + firstPassCircleIntersects[i].point);
+				Debug.Log ("firstpassi" + i + " " + firstPassCircleIntersects[i].point + " index " + firstPassCircleIntersects[i].index);
 			}
 			
 			
@@ -317,13 +326,15 @@ public class TerrainController : MonoBehaviour
 				//adds these to break list, will have to deal with indexes being 666 when breaking, basically will be
 				//no break and will instead make points at points specified and then circle blah blah
 				newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
-				deletePoints (newBreakList);
+				Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+				deletePoints (newBreakList, mousePosition);
 				return;
 			}
 			
-			//if no circleIntersects, then it's an easy break and quit
-			if (firstPassCircleIntersects.Count == 0)
-			{
+			//if no circleIntersects(or 1 for some godawful rare reason), then it's an easy break and quit
+			if (firstPassCircleIntersects.Count == 0)// || firstPassCircleIntersects.Count == 1)
+			{	
+				Debug.Log ("CircleCount = 0 || 1");
 				if (leftExplosionIntersects.Count % 2.0 == 0.0 && rightExplosionIntersects.Count % 2.0 == 0.0)
 				{
 					return;
@@ -331,7 +342,8 @@ public class TerrainController : MonoBehaviour
 				else
 				{
 					newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
-					deletePoints (newBreakList);
+					Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+					deletePoints (newBreakList, mousePosition);
 					return;
 				}
 			}
@@ -407,7 +419,6 @@ public class TerrainController : MonoBehaviour
 					}
 					for (int q = 0; q < firstPassCircleIntersects.Count; q++)
 					{
-						//might need to make this an espsilon thing because there maybe will be rounding errors
 						if (firstPassCircleIntersects[q].point.x > lowestCircleIntersect.point.x - EPSILON && firstPassCircleIntersects[q].point.x < lowestCircleIntersect.point.x + EPSILON)
 						{
 							//Debug.Log ("magic found from " + magicFoundFromThisPoint.point.x);
@@ -416,10 +427,12 @@ public class TerrainController : MonoBehaviour
 							if (lowestCircleIntersect.index > magicFoundFromThisPoint.index)
 							{
 							newBreakList.Add(new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect));
+							Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
 							}
 							else
 							{
 							newBreakList.Add(new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint));
+							Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
 							}
 						}
 					}	
@@ -427,7 +440,7 @@ public class TerrainController : MonoBehaviour
 				}
 
 			}
-			//right and left intersections only start a break if they are the first break, they can end any break though by overriding circle intersections, magic points and points derived from are always breaks
+			//(known to be wrong) right and left intersections only start a break if they are the first break, they can end any break though by overriding circle intersections, magic points and points derived from are always breaks
 			//third pass through points, finding which exits fall within counterclockwise from first enter circle to last exit circle
 			//breaking all that exit counterclockwise
 			//impossible for lowestLeft to end any breaks?
@@ -456,11 +469,13 @@ public class TerrainController : MonoBehaviour
 			//have to assign it or it wont work, ask zeb bout better waytadodis
 			PointAndIndex startBreak = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
 			bool lowestRightPointUsed = false;
+			bool lowestLeftPointUsed = false;
+			bool startBreakIsLeftPoint = false;
 			//PointAndIndex currentEnterPoint = firstPassCircleIntersects[0];
 			for (int s = 0; s < firstPassCircleIntersects.Count; s = s + 1)
 			{
-
 				Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
+				Debug.Log ("curentExitVector2 " + currentExitVector2);
 				float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
 				Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
 				//pretty sure this is <0 but might need to be >0
@@ -474,6 +489,7 @@ public class TerrainController : MonoBehaviour
 				{
 					Debug.Log ("s1 " + s);
 					newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
+					Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
 					continue;
 				}
 				//if final pass through loop and lowestRight has been used or does not exist
@@ -481,15 +497,18 @@ public class TerrainController : MonoBehaviour
 				{
 					Debug.Log ("s2 " + s + " index" + lowestRightPoint.index);
 					newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
+					Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
 					continue;
 				}
 				//if first pass through loop, sets start break
 				if (s == 0)
 				{
 					if (leftExplosionIntersects.Count % 2.0 != 0.0 && lowestLeftPoint.index <= firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
-					{
-						
+					{						
 						startBreak = lowestLeftPoint;
+						lowestLeftPointUsed = true;
+						startBreakIsLeftPoint = true;
+						Debug.Log ("starBreakIsLeftPoint");
 						continue;
 					}	
 					else
@@ -498,29 +517,73 @@ public class TerrainController : MonoBehaviour
 						continue;
 					}
 				}
-				//if accesing an exitCircle and is CounterClockwise, might need to be <= firstEntertolastexitangle
+				//if accesing an exitCircle and is CounterClockwise, might need to be <= firstEntertolastexitangle(not really since if its equal to lastExitAngle it will go into another if statement and never see this one
 				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
 				{
-					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index)
+					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index && firstPassCircleIntersects[s + 1].index < firstPassCircleIntersects[s + 2].index)
 					{
 						if (lowestRightPoint.point.x == 0)
 						{
 							Debug.Log ("s3 " + s);
 						}
 						newBreakList.Add(new BreakObject(startBreak, lowestRightPoint));
-						startBreak = firstPassCircleIntersects[s + 1];
 						lowestRightPointUsed = true;
+						Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
+						{
+							Debug.Log ("should never happen?====lowestLeft = startBreak but not first break");
+							startBreak = lowestLeftPoint;
+							lowestLeftPointUsed = true;
+						}
+						else
+						{
+							startBreak = firstPassCircleIntersects[s + 1];
+						}
 						s++;
 						continue;
 					}
 					else
 					{
+						//might need to put OR statement in its own if statement it appears to work, for now, need more thinking
+						if (startBreakIsLeftPoint == true || (!lowestRightPointUsed && lowestRightPoint.index != 666))
+						{							
+							if (points[firstPassCircleIntersects[s].index + 1].y < mousePosition.y)
+							{
+								newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
+								Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+								startBreak = firstPassCircleIntersects[s + 1];
+								startBreakIsLeftPoint = false;
+								s++;
+								continue;
+							}
+							else 
+							{
+								Debug.Log ("didn't break, not lower than bottom of circle");
+								s++;
+								continue;
+							}
+						}
+						
 						if (firstPassCircleIntersects[s].point.x == 0)
 						{
 							Debug.Log ("s4 " + s);
 						}
+						
 						newBreakList.Add(new BreakObject(startBreak, firstPassCircleIntersects[s]));
-						startBreak = firstPassCircleIntersects[s + 1];
+						
+						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
+						{
+							Debug.Log ("====lowestLeft = startBreak but not first break");
+							startBreak = lowestLeftPoint;
+							lowestLeftPointUsed = true;
+						}
+						else
+						{
+							startBreak = firstPassCircleIntersects[s + 1];
+						}
+						
+						Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+						//startBreak = firstPassCircleIntersects[s + 1];
 						s++;
 						continue;
 					}
@@ -543,7 +606,7 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 			}
-			deletePoints (newBreakList);
+			deletePoints (newBreakList, mousePosition);
 		}
 	}
 	//when there are no bottom circle points you are trying to draw them anyway, i.e top of circle and shit, justbreak magic points, so it'd 
@@ -551,7 +614,7 @@ public class TerrainController : MonoBehaviour
 	
 	//currently if the same start and end are in multple breaks, it will keep them all, but it will just delete and make same points again
 	//will want to get rid of this for speeder maybe later tuts
-	void deletePoints(List<BreakObject> newBreakList)
+	void deletePoints(List<BreakObject> newBreakList, Vector2 mousePosition)
 	{
 		//determine which indexes fall within others, because when break it adds points at start and end
 		List<int> insideIndexes = new List<int>();
@@ -612,10 +675,10 @@ public class TerrainController : MonoBehaviour
 		
 		
 		//might want to pass in mouse position so it isnt possible to be different
-		Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-		Vector2 mousePosition;
-		mousePosition.x = mousePositionTemp.x;
-		mousePosition.y = mousePositionTemp.y;
+		//Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
+		//Vector2 mousePosition;
+		//mousePosition.x = mousePositionTemp.x;
+		//mousePosition.y = mousePositionTemp.y;
 		
 		for (int i = newBreakList.Count - 1; i >= 0; i--)
 		{
@@ -632,11 +695,12 @@ public class TerrainController : MonoBehaviour
 //			PooChain12.renderer.material.color = jewsus;
 				
 			//want to do no breaking, just want to add points accordingly(probably general rules) since the points both fall
-			//within the same line segment			
+			//within the same line segment
+			//might need to be >=
 			if 	(newBreakList[i].start.index > newBreakList[i].end.index)
 			{
 				points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
-				for (float j = newBreakList[i].end.point.x; j >= newBreakList[i].start.point.x; j--)
+				for (float j = newBreakList[i].end.point.x - 1; j >= newBreakList[i].start.point.x; j--)
 				{
 					//Debug.Log ("j-mouseX" + (j-mousePosition.x));
 					if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
@@ -653,15 +717,17 @@ public class TerrainController : MonoBehaviour
 				continue;
 			}
 			
+			Debug.Log ("remove " + newBreakList[i].end.index + "to " + newBreakList[i].start.index);
+			
 			for (int k = newBreakList[i].end.index; k >= newBreakList[i].start.index; k--)
 			{
-				Debug.Log ("remove " + newBreakList[i].end.index + "to " + newBreakList[i].start.index);
 				points.RemoveAt (k);
 			}
 			
 			points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, newBreakList[i].end.point.y));
 			//points.Insert(newBreakList[i].start.index, new Vector2(newBreakList[i].end.point.x, mousePosition.y));
-			for (float j = newBreakList[i].end.point.x - 1; j >= newBreakList[i].start.point.x; j--)
+			//.1 used to be 1, changed it because steep slopes when click beneath terrain, then click a bit up, weird shit happens for circle intersections and left and right, just try it and see nucca
+			for (float j = newBreakList[i].end.point.x - .1f; j >= newBreakList[i].start.point.x; j--)
 			{
 //				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //				{
@@ -705,15 +771,23 @@ public class TerrainController : MonoBehaviour
 	 	success = buildTerrainMesh();
 		if (success == false)
 		{
-			Debug.Log ("buildTerrainFAILED");
+			Debug.Log ("BUILDTERRAINFAILED");
 			for (int i = 0; i < points.Count - 1; i++)
 			{
 				Vector2 intersectionPoint = segmentIntersection (points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, newBreakList[0].start.point.x, newBreakList[0].start.point.y, newBreakList[newBreakList.Count - 1].end.point.x, newBreakList[newBreakList.Count - 1].end.point.y);
 				if (intersectionPoint != new Vector2(666,666))
 				{
-					points.RemoveRange (newBreakList[newBreakList.Count - 1].end.index, i);
-					points.Insert(i, intersectionPoint);
+//					points.RemoveRange (newBreakList[newBreakList.Count - 1].end.index, i);
+//					points.Insert(i, intersectionPoint);
 				}
+			}
+			if (buildTerrainMesh())
+			{
+				Debug.Log ("magicPoint2 success");
+			}
+			else
+			{
+				Debug.Log ("magicPoint2 failure");	
 			}
 		}
 		Debug.Log ("buildTerrainMesh()");

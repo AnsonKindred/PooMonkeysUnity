@@ -16,7 +16,7 @@ function OnTriggerEnter (collider : Collider) {
         this.rigidbody.velocity = this.rigidbody.velocity / 3;
         this.rigidbody.transform.position = this.rigidbody.transform.position + Vector3(0.0,0.0,-5.0);
        	yield WaitForSeconds(3);
-        Destroy(this.gameObject);        
+        Destroy(this.gameObject);
     }
 }
 
