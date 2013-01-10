@@ -44,6 +44,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\ColorBlending.cs" />
      <Compile Include="Assets\Scripts\Quad.cs" />
      <Compile Include="Assets\Scripts\TerrainController.cs" />
      <Compile Include="Assets\Scripts\Triangulator.cs" />

@@ -12,6 +12,8 @@
 //if next point has 2 intersections, ignore
 //if next point has 1 intersection and end point is inside radius, ignore
 //if next point has 1 intersection and end point is outside radius, use it up
+
+//TODO; remove threading issues by adding explosions to a list and then passing through them all in update or fixedUpdate
 using UnityEngine;
 using System.Collections;
 using System.IO;
