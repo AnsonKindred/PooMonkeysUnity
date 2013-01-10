@@ -1,19 +1,13 @@
 //TODO: why did i have to make the constructor for my P&I and BREAKOBJECT public
 //points includes bottom left of screen and bottom right of terrain as points so you dont want to use the first and last index of points when determining if the linesegment intersects with explosion circle
-//me thinks general rule set for break and addition is to:
-//find outer most breaks and only use those(i dont think you can get it only one part within another, the whole thing is always inside, not just part?)
-//go through break list where you start at highest indexes working backwards so as not to disrupt indexes and BREAK THAT SHIT UP
-//after the single break, add points accordingly(backwards), it will be start index?
-//GENERAL IDEA: if the point at end index is not on circle edge, make a point at it and then go straight down until you are on the circles edge and add points until you reach and end of that break around the circle until at end index Xvalue, then place a point at the start index and it should all be dandy dancy cotton go fuck yourself
 
-//1-6-13 check out 4 segs, i think everything is actually working, when terrainBuild is invalid you are going to want to draw a line from startbreak to end break, then check if it intersects with any lineSegments from Points[], if it does you draw a line from the start to the intersect and break from intersect to end
+//when terrainBuild is invalid you are going to want to draw a line from startbreak to end break, then check if it intersects with any lineSegments from Points[], if it does you draw a line from the start to the intersect and break from intersect to end
 
 //so you dont get odd number > 1 circleIntersection counts
 //if next point has 2 intersections, ignore
 //if next point has 1 intersection and end point is inside radius, ignore
 //if next point has 1 intersection and end point is outside radius, use it up
 
-//TODO; remove threading issues by adding explosions to a list and then passing through them all in update or fixedUpdate
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -24,8 +18,7 @@ using System.Linq;
 [ExecuteInEditMode]
 
 
-
-public class TerrainController : MonoBehaviour 
+public class TerrainController : MonoBehaviour
 {
 	float THICKNESS = .1f;
 	float segmentWidth;
@@ -47,8 +40,8 @@ public class TerrainController : MonoBehaviour
 	
 	bool doneGenerating = false;
 	
-	public Vector3 mousePositionYo;
-	
+	List<List<BreakObject>> explosionList = new List<List<BreakObject>>();
+	List<Vector2> explosionCenter = new List<Vector2>();	
 	
 	// Use this for initialization
 	void Start () 
@@ -77,12 +70,22 @@ public class TerrainController : MonoBehaviour
 		}
 	}
 	
+	void FixedUpdate()
+	{
+		for (int i = 0; i < explosionList.Count; i++) 
+		{
+			deletePoints (explosionList[i], explosionCenter[i]);
+			explosionList.RemoveAt(i);
+			explosionCenter.RemoveAt(i);
+		}
+	}
+	
+	
 	// Update is called once per frame
 	void Update()
 	{	//figure out how to tell if circle intersection is tangent cause it'll f everything up, you want to ignore the single
 		//circle intersection
 		// indexes selected are the ones you want to destroy
-		mousePositionYo = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
 		
 		if (Input.GetMouseButtonDown(0))
 		{
@@ -94,7 +97,7 @@ public class TerrainController : MonoBehaviour
 			List<List<PointAndIndex>> fullMagicList = new List<List<PointAndIndex>>();
 			List<BreakObject> newBreakList = new List<BreakObject>();
 			List<PointAndIndex> leftExplosionIntersects = new List<PointAndIndex>();
-			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();			
+			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();
 			
 			//first pass through Points, determines all Left, Right, and Circle Intersections
 			for (int i = 0; i < points.Count - 2; i++)
@@ -145,6 +148,49 @@ public class TerrainController : MonoBehaviour
 				float x1 = points[i+1].x - mousePosition.x;
 				float y1 = points[i+1].y - mousePosition.y;
 				float r = explosionRadius;
+				
+				float x2 = points[i+2].x - mousePosition.x;
+				float y2 = points[i+2].y - mousePosition.y;
+				bool nextFirstIsOnLineSegment = false;
+				bool nextSecondIsOnLineSegment = false;
+				float nextdX = x2 - x1;
+				float nextdY = y2 - y1;
+				float nextdR = Mathf.Sqrt (Mathf.Pow (nextdX, 2) + Mathf.Pow (nextdY, 2));
+				float nextd = x1*y2 - x2*y1;
+				float nextincidence = r*r * nextdR*nextdR - nextd*nextd;
+				float nextresultingX1 = 0;
+				float nextresultingX2 = 0;
+				float nextresultingY1 = 0;
+				float nextresultingY2 = 0;
+				bool ignore = false;
+				
+				if (nextincidence > 0)
+				{
+					nextresultingX1 = (nextd * nextdY + Sgn(nextdY) * nextdX * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
+					nextresultingY1 = -(nextd * nextdX - Mathf.Abs (nextdY) * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
+					nextresultingX2 = (nextd * nextdY - Sgn(nextdY) * nextdX * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
+					nextresultingY2 = -(nextd * nextdX + Mathf.Abs (nextdY) * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
+					
+										//maybe if points+1 > explosionRadius from mousePosition then we know it crossed to outside the circle
+					if ((nextresultingX1 >= x1 && nextresultingX1 <= x2 && nextresultingY1 >= y1 && nextresultingY1 <= y2) || (nextresultingX1 <= x1 && nextresultingX1 >= x2 && nextresultingY1 <= y1 && nextresultingY1 >= y2) || (nextresultingX1 <= x1 && nextresultingX1 >= x2 && nextresultingY1 >= y1 && nextresultingY1 <= y2) || (nextresultingX1 >= x1 && nextresultingX1 <= x2 && nextresultingY1 <= y1 && nextresultingY1 >= y2))
+					{
+						nextFirstIsOnLineSegment = true;
+					}
+					if ((nextresultingX2 >= x1 && nextresultingX2 <= x2 && nextresultingY2 >= y1 && nextresultingY2 <= y2) || (nextresultingX2 <= x1 && nextresultingX2 >= x2 && nextresultingY2 <= y1 && nextresultingY2 >= y2) || (nextresultingX2 <= x1 && nextresultingX2 >= x2 && nextresultingY2 >= y1 && nextresultingY2 <= y2) || (nextresultingX2 >= x1 && nextresultingX2 <= x2 && nextresultingY2 <= y1 && nextresultingY2 >= y2))
+					{
+						nextSecondIsOnLineSegment = true;
+					}
+					
+					if (firstIsOnLineSegment && secondIsOnLineSegment)
+					{
+						ignore = true;
+					}
+////////////////////////////////////////////////////////////////////
+					if ((nextFirstIsOnLineSegment || nextSecondIsOnLineSegment) && ignore == false && distance < explosionRadius)
+					{
+						
+					}
+				}
 				
 				
 				bool firstIsOnLineSegment = false;
@@ -329,7 +375,9 @@ public class TerrainController : MonoBehaviour
 				//no break and will instead make points at points specified and then circle blah blah
 				newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
 				Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
-				deletePoints (newBreakList, mousePosition);
+				explosionList.Add (newBreakList);
+				explosionCenter.Add(mousePosition);
+				//deletePoints (newBreakList, mousePosition);
 				return;
 			}
 			
@@ -345,7 +393,9 @@ public class TerrainController : MonoBehaviour
 				{
 					newBreakList.Add (new BreakObject(lowestLeftPoint, lowestRightPoint));
 					Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
-					deletePoints (newBreakList, mousePosition);
+					explosionList.Add (newBreakList);
+					explosionCenter.Add(mousePosition);
+					//deletePoints (newBreakList, mousePosition);
 					return;
 				}
 			}
@@ -608,7 +658,9 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 			}
-			deletePoints (newBreakList, mousePosition);
+			explosionList.Add (newBreakList);
+			explosionCenter.Add(mousePosition);
+			//deletePoints (newBreakList, mousePosition);
 		}
 	}
 	//when there are no bottom circle points you are trying to draw them anyway, i.e top of circle and shit, justbreak magic points, so it'd 
