@@ -3,10 +3,7 @@
 
 //when terrainBuild is invalid you are going to want to draw a line from startbreak to end break, then check if it intersects with any lineSegments from Points[], if it does you draw a line from the start to the intersect and break from intersect to end
 
-//so you dont get odd number > 1 circleIntersection counts
-//if next point has 2 intersections, ignore
-//if next point has 1 intersection and end point is inside radius, ignore
-//if next point has 1 intersection and end point is outside radius, use it up
+//possibly points are getting draw at the same location so the terrain fails, fix it, use EPSILON to add or subtract x or some shit based on direction
 
 using UnityEngine;
 using System.Collections;
@@ -72,11 +69,13 @@ public class TerrainController : MonoBehaviour
 	
 	void FixedUpdate()
 	{
-		for (int i = 0; i < explosionList.Count; i++) 
+		List<Vector2> tempExplosionCenter = new List<Vector2>(explosionCenter);
+		List<List<BreakObject>> tempExplosionList = new List<List<BreakObject>>(explosionList);
+		explosionList = new List<List<BreakObject>>();
+		explosionCenter = new List<Vector2>();
+		for (int i = 0; i < tempExplosionList.Count; i++)
 		{
-			deletePoints (explosionList[i], explosionCenter[i]);
-			explosionList.RemoveAt(i);
-			explosionCenter.RemoveAt(i);
+			deletePoints (tempExplosionList[i], tempExplosionCenter[i]);
 		}
 	}
 	
@@ -100,6 +99,7 @@ public class TerrainController : MonoBehaviour
 			List<PointAndIndex> rightExplosionIntersects = new List<PointAndIndex>();
 			
 			//first pass through Points, determines all Left, Right, and Circle Intersections
+			//maybe needs to be .count - 1
 			for (int i = 0; i < points.Count - 2; i++)
 			{
 				float leftExplosionRadiusX = mousePosition.x - explosionRadius;
@@ -149,50 +149,6 @@ public class TerrainController : MonoBehaviour
 				float y1 = points[i+1].y - mousePosition.y;
 				float r = explosionRadius;
 				
-				float x2 = points[i+2].x - mousePosition.x;
-				float y2 = points[i+2].y - mousePosition.y;
-				bool nextFirstIsOnLineSegment = false;
-				bool nextSecondIsOnLineSegment = false;
-				float nextdX = x2 - x1;
-				float nextdY = y2 - y1;
-				float nextdR = Mathf.Sqrt (Mathf.Pow (nextdX, 2) + Mathf.Pow (nextdY, 2));
-				float nextd = x1*y2 - x2*y1;
-				float nextincidence = r*r * nextdR*nextdR - nextd*nextd;
-				float nextresultingX1 = 0;
-				float nextresultingX2 = 0;
-				float nextresultingY1 = 0;
-				float nextresultingY2 = 0;
-				bool ignore = false;
-				
-				if (nextincidence > 0)
-				{
-					nextresultingX1 = (nextd * nextdY + Sgn(nextdY) * nextdX * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
-					nextresultingY1 = -(nextd * nextdX - Mathf.Abs (nextdY) * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
-					nextresultingX2 = (nextd * nextdY - Sgn(nextdY) * nextdX * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
-					nextresultingY2 = -(nextd * nextdX + Mathf.Abs (nextdY) * Mathf.Sqrt (r*r * nextdR*nextdR - nextd*nextd)) / (nextdR*nextdR);
-					
-										//maybe if points+1 > explosionRadius from mousePosition then we know it crossed to outside the circle
-					if ((nextresultingX1 >= x1 && nextresultingX1 <= x2 && nextresultingY1 >= y1 && nextresultingY1 <= y2) || (nextresultingX1 <= x1 && nextresultingX1 >= x2 && nextresultingY1 <= y1 && nextresultingY1 >= y2) || (nextresultingX1 <= x1 && nextresultingX1 >= x2 && nextresultingY1 >= y1 && nextresultingY1 <= y2) || (nextresultingX1 >= x1 && nextresultingX1 <= x2 && nextresultingY1 <= y1 && nextresultingY1 >= y2))
-					{
-						nextFirstIsOnLineSegment = true;
-					}
-					if ((nextresultingX2 >= x1 && nextresultingX2 <= x2 && nextresultingY2 >= y1 && nextresultingY2 <= y2) || (nextresultingX2 <= x1 && nextresultingX2 >= x2 && nextresultingY2 <= y1 && nextresultingY2 >= y2) || (nextresultingX2 <= x1 && nextresultingX2 >= x2 && nextresultingY2 >= y1 && nextresultingY2 <= y2) || (nextresultingX2 >= x1 && nextresultingX2 <= x2 && nextresultingY2 <= y1 && nextresultingY2 >= y2))
-					{
-						nextSecondIsOnLineSegment = true;
-					}
-					
-					if (firstIsOnLineSegment && secondIsOnLineSegment)
-					{
-						ignore = true;
-					}
-////////////////////////////////////////////////////////////////////
-					if ((nextFirstIsOnLineSegment || nextSecondIsOnLineSegment) && ignore == false && distance < explosionRadius)
-					{
-						
-					}
-				}
-				
-				
 				bool firstIsOnLineSegment = false;
 				bool secondIsOnLineSegment = false;
 				
@@ -240,41 +196,41 @@ public class TerrainController : MonoBehaviour
 //					Debug.Log("ry1 " + resultingY1);
 //					Debug.Log("rx2 " + resultingX2);
 //					Debug.Log("ry2 " + resultingY2);
-				
+					
 					//maybe when land goes in left direction this needs to be reworked?
-					//if the result lands on endpoints, have to figure out a way to use it only if it crosses and doesnt stay on same side of circle
-					//maybe if points+1 > explosionRadius from mousePosition then we know it crossed to outside the circle
-					if ((resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 <= y0 && resultingY1 >= y1) || (resultingX1 <= x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 <= y1) || (resultingX1 >= x0 && resultingX1 <= x1 && resultingY1 <= y0 && resultingY1 >= y1))
+					//changed <= to just <
+					//should have fixed problem with 2 intersections at same point even though you only want 1
+					if ((resultingX1 >= x0 && resultingX1 < x1 && resultingY1 >= y0 && resultingY1 < y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 < y0 && resultingY1 >= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 < y1) || (resultingX1 >= x0 && resultingX1 < x1 && resultingY1 < y0 && resultingY1 >= y1))
 					{
 						Debug.Log("firstResult");
 						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-						Debug.Log("ox0 " + x0);
-						Debug.Log("oy0 " + y0);
-						Debug.Log("ox1 " + x1);
-						Debug.Log("oy1 " + y1);
-//						//Debug.Log("r " + r);
-						Debug.Log("rx1 " + resultingX1);
-						Debug.Log("ry1 " + resultingY1);
-						Debug.Log("rx2 " + resultingX2);
-						Debug.Log("ry2 " + resultingY2);
+//						Debug.Log("ox0 " + x0);
+//						Debug.Log("oy0 " + y0);
+//						Debug.Log("ox1 " + x1);
+//						Debug.Log("oy1 " + y1);
+////						//Debug.Log("r " + r);
+//						Debug.Log("rx1 " + resultingX1);
+//						Debug.Log("ry1 " + resultingY1);
+//						Debug.Log("rx2 " + resultingX2);
+//						Debug.Log("ry2 " + resultingY2);
 						if (D1greaterthanD2)
 						{
 							Debug.Log ("distance01>distance02");
 						}
 					}
-					if ((resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 <= y0 && resultingY2 >= y1) || (resultingX2 <= x0 && resultingX2 >= x1 && resultingY2 >= y0 && resultingY2 <= y1) || (resultingX2 >= x0 && resultingX2 <= x1 && resultingY2 <= y0 && resultingY2 >= y1))
+					if ((resultingX2 >= x0 && resultingX2 < x1 && resultingY2 >= y0 && resultingY2 < y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 < y0 && resultingY2 >= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 >= y0 && resultingY2 < y1) || (resultingX2 >= x0 && resultingX2 < x1 && resultingY2 < y0 && resultingY2 >= y1))
 					{
 						Debug.Log("secondResult");
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
-						Debug.Log("ox0 " + x0);
-						Debug.Log("oy0 " + y0);
-						Debug.Log("ox1 " + x1);
-						Debug.Log("oy1 " + y1);
-	//					//Debug.Log("r " + r);
-						Debug.Log("rx1 " + resultingX1);
-						Debug.Log("ry1 " + resultingY1);
-						Debug.Log("rx2 " + resultingX2);
-						Debug.Log("ry2 " + resultingY2);
+//						Debug.Log("ox0 " + x0);
+//						Debug.Log("oy0 " + y0);
+//						Debug.Log("ox1 " + x1);
+//						Debug.Log("oy1 " + y1);
+//	//					//Debug.Log("r " + r);
+//						Debug.Log("rx1 " + resultingX1);
+//						Debug.Log("ry1 " + resultingY1);
+//						Debug.Log("rx2 " + resultingX2);
+//						Debug.Log("ry2 " + resultingY2);
 						if (D1greaterthanD2)
 						{
 							Debug.Log ("distance01>distance02");
@@ -296,9 +252,8 @@ public class TerrainController : MonoBehaviour
 					//if Count is odd
 					else
 					{
-						Debug.Log ("jew");
 						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i));
-						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i));
+						firstPassCircleIntersects.Add(new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1));
 					}
 				}
 				// if only first Intersection
@@ -825,7 +780,7 @@ public class TerrainController : MonoBehaviour
 	 	success = buildTerrainMesh();
 		if (success == false)
 		{
-			Debug.Log ("BUILDTERRAINFAILED");
+			Debug.Log ("================================================BUILDTERRAINFAILED");
 			for (int i = 0; i < points.Count - 1; i++)
 			{
 				Vector2 intersectionPoint = segmentIntersection (points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, newBreakList[0].start.point.x, newBreakList[0].start.point.y, newBreakList[newBreakList.Count - 1].end.point.x, newBreakList[newBreakList.Count - 1].end.point.y);
