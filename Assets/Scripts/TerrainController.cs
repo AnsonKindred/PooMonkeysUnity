@@ -202,6 +202,14 @@ public class TerrainController : MonoBehaviour
 					//should have fixed problem with 2 intersections at same point even though you only want 1
 					if ((resultingX1 >= x0 && resultingX1 < x1 && resultingY1 >= y0 && resultingY1 < y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 < y0 && resultingY1 >= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 >= y0 && resultingY1 < y1) || (resultingX1 >= x0 && resultingX1 < x1 && resultingY1 < y0 && resultingY1 >= y1))
 					{
+						if ((resultingX1 == x0 && resultingY1 == y0) || (resultingX1 == x0 && resultingY1 == y0) || (resultingX1 == x0 && resultingY1 == y0) || (resultingX1 == x0 && resultingY1 == y0))
+						{
+							Debug.Log ("first is 1===============================");
+						}
+						if ((resultingX1 == x1 && resultingY1 == y1) || (resultingX1 == x1 && resultingY1 == y1) || (resultingX1 == x1 && resultingY1 == y1) || (resultingX1 == x1 && resultingY1 == y1))
+						{
+							Debug.Log ("first is 2===============================");
+						}
 						Debug.Log("firstResult");
 						firstIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
 //						Debug.Log("ox0 " + x0);
@@ -220,6 +228,14 @@ public class TerrainController : MonoBehaviour
 					}
 					if ((resultingX2 >= x0 && resultingX2 < x1 && resultingY2 >= y0 && resultingY2 < y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 < y0 && resultingY2 >= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 >= y0 && resultingY2 < y1) || (resultingX2 >= x0 && resultingX2 < x1 && resultingY2 < y0 && resultingY2 >= y1))
 					{
+						if ((resultingX2 == x0 && resultingY2 == y0) || (resultingX2 == x0 && resultingY2 == y0) || (resultingX2 == x0 && resultingY2 == y0) || (resultingX2 == x0 && resultingY2 == y0))
+						{
+							Debug.Log ("second is 1=====================");
+						}
+						if ((resultingX2 == x1 && resultingY2 == y1) || (resultingX2 == x1 && resultingY2 == y1) || (resultingX2 == x1 && resultingY2 == y1) || (resultingX2 == x1 && resultingY2 == y1))
+						{
+							Debug.Log ("second is 2=====================");
+						}
 						Debug.Log("secondResult");
 						secondIsOnLineSegment = true; //since the resulting points dont fall within the lineSegment
 //						Debug.Log("ox0 " + x0);
