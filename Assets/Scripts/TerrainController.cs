@@ -935,7 +935,7 @@ public class TerrainController : MonoBehaviour
 			}
 				
 			Debug.Log ("after " + i);
-			Debug.Log ("start " + finalBreakList[i].start.index + " end " + finalBreakList[i].end.index);
+			Debug.Log ("start " + finalBreakList[finalBreakListCount - 1].start.index + " end " + finalBreakList[finalBreakListCount - 1].end.index);
 			//Debug.Log ("end" + finalBreakList[i].end.point.x);
 		}
 		
