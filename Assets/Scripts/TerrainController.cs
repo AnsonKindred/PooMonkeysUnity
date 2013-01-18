@@ -876,6 +876,8 @@ public class TerrainController : MonoBehaviour
 	//will want to get rid of this for speeder maybe later tuts
 	void deletePoints(BreakObject[] newBreakList1, Vector2 mousePosition, int newBreakList1Count)
 	{
+		BreakObject[] finalBreakList = new BreakObject[100];
+		int finalBreakListCount = 0;
 		//determine which indexes fall within others, because when break it adds points at start and end
 		//List<int> insideIndexes = new List<int>();
 		for (int i = 0; i < newBreakList1Count; i++)
@@ -885,7 +887,7 @@ public class TerrainController : MonoBehaviour
 			//Debug.Log ("end" + newBreakList1[i].end.point.x);
 			for (int j = 0; j < newBreakList1Count; j++)
 			{
-				if (j == i)
+				if (j == i || newBreakList1[j] == null || newBreakList1[i] == null)
 				{
 					continue;
 				}
@@ -919,21 +921,36 @@ public class TerrainController : MonoBehaviour
 //			newBreakList1.RemoveAt (insideIndexes[i]);
 //		}
 		
+		
 		for (int i = 0; i < newBreakList1Count; i++)
 		{
+			if (newBreakList1[i] == null)
+			{
+				continue;	
+			}
+			else
+			{
+				finalBreakList[finalBreakListCount] = newBreakList1[i];
+				finalBreakListCount++;
+			}
+				
 			Debug.Log ("after " + i);
-			Debug.Log ("start " + newBreakList1[i].start.index + " end " + newBreakList1[i].end.index);
-			//Debug.Log ("end" + newBreakList1[i].end.point.x);
+			Debug.Log ("start " + finalBreakList[i].start.index + " end " + finalBreakList[i].end.index);
+			//Debug.Log ("end" + finalBreakList[i].end.point.x);
 		}
 		
-		quickSort (newBreakList1, 0, newBreakList1Count - 1);
-		//newBreakList1.Sort ((x,y) => x.start.index == y.start.index ? 0 : (x.start.index < y.start.index ? -1 : 1));
+		quickSort (finalBreakList, 0, finalBreakListCount - 1);
+		//finalBreakList.Sort ((x,y) => x.start.index == y.start.index ? 0 : (x.start.index < y.start.index ? -1 : 1));
 				
-		for (int i = 0; i < newBreakList1Count; i++)
-		{	
+		for (int i = 0; i < finalBreakListCount; i++)
+		{
+			if (finalBreakList[i] == null)
+			{
+				continue;	
+			}
 			Debug.Log ("afterSort " + i);
-			Debug.Log ("start " + newBreakList1[i].start.index + " end " + newBreakList1[i].end.index);
-			//Debug.Log ("end" + newBreakList1[i].end.point.x);
+			Debug.Log ("start " + finalBreakList[i].start.index + " end " + finalBreakList[i].end.index);
+			//Debug.Log ("end" + finalBreakList[i].end.point.x);
 		}
 		
 		
@@ -943,13 +960,17 @@ public class TerrainController : MonoBehaviour
 		//mousePosition.x = mousePositionTemp.x;
 		//mousePosition.y = mousePositionTemp.y;
 		
-		for (int i = newBreakList1Count - 1; i >= 0; i--)
+		for (int i = finalBreakListCount - 1; i >= 0; i--)
 		{
+			if (finalBreakList[i] == null)
+			{
+				continue;	
+			}
 			//List<int> everyBreakIndex = new List<int>();
 			
 			//drawing balls on screen at break points
-//			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList1[i].start.point.x, newBreakList1[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
-//			GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(newBreakList1[i].end.point.x, newBreakList1[i].end.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
+//			GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(finalBreakList[i].start.point.x, finalBreakList[i].start.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
+//			GameObject PooChain12 = (GameObject)Instantiate(PooChainClone, new Vector3(finalBreakList[i].end.point.x, finalBreakList[i].end.point.y + 1.0f + i * 1.0f, -7.0f),Quaternion.identity);
 //			float r = Random.value;
 //			float g = Random.value;
 //			float b = Random.value;
@@ -960,65 +981,65 @@ public class TerrainController : MonoBehaviour
 			//want to do no breaking, just want to add points accordingly(probably general rules) since the points both fall
 			//within the same line segment
 			//might need to be >=
-			if 	(newBreakList1[i].start.index > newBreakList1[i].end.index)
+			if 	(finalBreakList[i].start.index > finalBreakList[i].end.index)
 			{
 				//if y value is supposed to be below terrain, make it random number from 1 to 3
-				if (newBreakList1[i].end.point.y > 1.0f)
+				if (finalBreakList[i].end.point.y > 1.0f)
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].end.point.x, newBreakList1[i].end.point.y));
+					points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].end.point.x, finalBreakList[i].end.point.y));
 				}
 				else
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].end.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
+					points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].end.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
 				}
 				//1-12 got rid off since start is greater than end index
-//				for (float j = newBreakList1[i].end.point.x - 1; j >= newBreakList1[i].start.point.x; j--)
+//				for (float j = finalBreakList[i].end.point.x - 1; j >= finalBreakList[i].start.point.x; j--)
 //				{
 //					//Debug.Log ("j-mouseX" + (j-mousePosition.x));
 //					if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //					{
 //						//Debug.Log ("J" + j);
 //						float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
-//						points.Insert(newBreakList1[i].start.index, new Vector2(j, mousePosition.y - y));
+//						points.Insert(finalBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
 //					}
 //				}
-				//float y2 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList1[i].start.point.x - mousePosition.x, 2));
-				//points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, mousePosition.y));// - y2));
-				if (newBreakList1[i].start.point.y > 1.0f)
+				//float y2 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(finalBreakList[i].start.point.x - mousePosition.x, 2));
+				//points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, mousePosition.y));// - y2));
+				if (finalBreakList[i].start.point.y > 1.0f)
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, newBreakList1[i].start.point.y));
+					points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, finalBreakList[i].start.point.y));
 				}
 				else
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
+					points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
 				}
 				//buildTerrainMesh();
 				continue;
 			}
 			
-			Debug.Log ("remove " + newBreakList1[i].end.index + "to " + newBreakList1[i].start.index);
+			Debug.Log ("remove " + finalBreakList[i].end.index + "to " + finalBreakList[i].start.index);
 			
-			for (int k = newBreakList1[i].end.index; k >= newBreakList1[i].start.index; k--)
+			for (int k = finalBreakList[i].end.index; k >= finalBreakList[i].start.index; k--)
 			{
 				points.RemoveAt (k);
 			}
 			
 			//add this if statement if yuo think you are putting a point too close to another and getting terrainBuild error
-			//if (Mathf.Abs (newBreakList1[i].end.point.x - points[newBreakList1[i].start.index+1].x) > .001 && Mathf.Abs (newBreakList1[i].end.point.y - points[newBreakList1[i].start.index+1].y) > .001)
+			//if (Mathf.Abs (finalBreakList[i].end.point.x - points[finalBreakList[i].start.index+1].x) > .001 && Mathf.Abs (finalBreakList[i].end.point.y - points[finalBreakList[i].start.index+1].y) > .001)
 			//{
-			if (newBreakList1[i].end.point.y > 1.0f)
+			if (finalBreakList[i].end.point.y > 1.0f)
 			{
-				points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].end.point.x, newBreakList1[i].end.point.y));
+				points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].end.point.x, finalBreakList[i].end.point.y));
 			}
 			else
 			{
-				points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].end.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
+				points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].end.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
 			}
 			//}
 			
-			//points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].end.point.x, mousePosition.y));
+			//points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].end.point.x, mousePosition.y));
 			//.1 used to be 1, changed it because steep slopes when click beneath terrain, then click a bit up, weird shit happens for circle intersections and left and right, just try it and see nucca
-			for (float j = newBreakList1[i].end.point.x - .1f; j >= newBreakList1[i].start.point.x; j--)
+			for (float j = finalBreakList[i].end.point.x - .1f; j >= finalBreakList[i].start.point.x; j--)
 			{
 //				if (j - mousePosition.x < explosionRadius && j - mousePosition.x > -explosionRadius)
 //				{
@@ -1026,26 +1047,26 @@ public class TerrainController : MonoBehaviour
 				float y = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(j - mousePosition.x, 2));
 				if (mousePosition.y - y > 1.0f)
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(j, mousePosition.y - y));
+					points.Insert(finalBreakList[i].start.index, new Vector2(j, mousePosition.y - y));
 				}
 				else
 				{
-					points.Insert(newBreakList1[i].start.index, new Vector2(j, 1.0f));//Random.Range(0.0f, 3.0f)));
+					points.Insert(finalBreakList[i].start.index, new Vector2(j, 1.0f));//Random.Range(0.0f, 3.0f)));
 				}
 //				}
 			}
-			//float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(newBreakList1[i].start.point.x - mousePosition.x, 2));
-			//points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, mousePosition.y));// - y3));
-			if (newBreakList1[i].start.point.y > 1.0f)
+			//float y3 = Mathf.Sqrt (Mathf.Pow(explosionRadius, 2) - Mathf.Pow(finalBreakList[i].start.point.x - mousePosition.x, 2));
+			//points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, mousePosition.y));// - y3));
+			if (finalBreakList[i].start.point.y > 1.0f)
 			{
-				points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, newBreakList1[i].start.point.y));
+				points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, finalBreakList[i].start.point.y));
 			}
 			else
 			{
-				points.Insert(newBreakList1[i].start.index, new Vector2(newBreakList1[i].start.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
+				points.Insert(finalBreakList[i].start.index, new Vector2(finalBreakList[i].start.point.x, 1.0f));//Random.Range(0.0f, 3.0f)));
 			}
 
-//			for (int j = newBreakList1[i].start.index; j <= newBreakList1[i].end.index; j++)
+//			for (int j = finalBreakList[i].start.index; j <= finalBreakList[i].end.index; j++)
 //			{
 //				everyBreakIndex.Add (j);
 //			}
@@ -1079,10 +1100,10 @@ public class TerrainController : MonoBehaviour
 			Debug.Log ("================================================BUILDTERRAINFAILED");
 			for (int i = 0; i < points.Count - 1; i++)
 			{
-				Vector2 intersectionPoint = segmentIntersection (points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, newBreakList1[0].start.point.x, newBreakList1[0].start.point.y, newBreakList1[newBreakList1Count - 1].end.point.x, newBreakList1[newBreakList1Count - 1].end.point.y);
+				Vector2 intersectionPoint = segmentIntersection (points[i].x, points[i].y, points[i + 1].x, points[i + 1].y, finalBreakList[0].start.point.x, finalBreakList[0].start.point.y, finalBreakList[finalBreakListCount - 1].end.point.x, finalBreakList[finalBreakListCount - 1].end.point.y);
 				if (intersectionPoint != new Vector2(666,666))
 				{
-					points.RemoveRange (newBreakList1[newBreakList1Count - 1].end.index, i);
+					points.RemoveRange (finalBreakList[finalBreakListCount - 1].end.index, i);
 					points.Insert(i, intersectionPoint);
 				}
 			}
@@ -1265,31 +1286,32 @@ public class TerrainController : MonoBehaviour
 	}
 	void quickSort(BreakObject[] arr, int left, int right) 
 	{
-      int i = left, j = right;
-      BreakObject tmp;
-      int pivot = arr[(left + right) / 2].start.index;
- 
-      /* partition */
-      while (i <= j) {
-            while (arr[i].start.index < pivot)
-                  i++;
-            while (arr[j].start.index > pivot)
-                  j--;
-            if (i <= j) {
-                  tmp = arr[i];
-                  arr[i] = arr[j];
-                  arr[j] = tmp;
-                  i++;
-                  j--;
-            }
-      }
- 
-      /* recursion */
-      if (left < j)
-            quickSort(arr, left, j);
-      if (i < right)
-            quickSort(arr, i, right);
-	}
+		int i = left, j = right;
+		BreakObject tmp;
+		
+		int pivot = arr[(left + right) / 2].start.index;
+		
+		/* partition */
+		while (i <= j) {
+		    while (arr[i].start.index < pivot)
+		          i++;
+		    while (arr[j].start.index > pivot)
+		          j--;
+		    if (i <= j) {
+		          tmp = arr[i];
+		          arr[i] = arr[j];
+		          arr[j] = tmp;
+		          i++;
+		          j--;
+		    }
+		}
+		
+		/* recursion */
+		if (left < j)
+		    quickSort(arr, left, j);
+		if (i < right)
+		    quickSort(arr, i, right);
+		}
 }
 
 public class PointAndIndex
