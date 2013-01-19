@@ -28,7 +28,7 @@ public class TerrainController : MonoBehaviour
 	
 	float EPSILON = .0001f;
 	
-	//public GameObject PooChainClone;
+	public GameObject PooChainClone;
 	
 	public int warpTime;
 	public float warpScale;
@@ -63,6 +63,7 @@ public class TerrainController : MonoBehaviour
 	 	while(success == false && count < 10)
 	 	{
        		if(count > 0) Debug.Log("Terrain generation failed, trying again");
+			if(count > 8) Debug.Log ("PROBLEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMM");
 			_generate();
 			success = buildTerrainMesh();
 			count++;
@@ -267,7 +268,6 @@ public class TerrainController : MonoBehaviour
 					//if Count is odd
 					else
 					{
-						Debug.Log ("jew");
 						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);//i
 						firstPassCircleIntersectsCount++;
 						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);//i+1
@@ -359,6 +359,24 @@ public class TerrainController : MonoBehaviour
 				}
 			}			
 			
+			//if circleIntersects gets odd number of intersects you are going to want to ignore the shot
+			//it's sad, i know, but it's basically perfect except when you click the same spot a bunch of times so fuck you
+			//may want to eventually gowith left andrightbreak if !=666, miunno
+			if (firstPassCircleIntersectsCount % 2 !=0.0)
+			{
+				Debug.Log ("ODD # of circleIntersects");
+				previousPoints.Clear ();
+				firstPassCircleIntersectsCount = 0;
+				fullMagicList.Clear ();
+				newBreakListCount = 0;
+				leftExplosionIntersectsCount = 0;
+				rightExplosionIntersectsCount = 0;
+				return;
+			}
+			Debug.Log ("firstPassCount " + firstPassCircleIntersectsCount);
+			
+			
+			
 			//if circle is completely in between two indexes on points
 			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
 			{
@@ -397,7 +415,11 @@ public class TerrainController : MonoBehaviour
 			}
 			
 			for (int l = 0; l < firstPassCircleIntersectsCount; l++)
-			{				
+			{	
+				Debug.Log("circleI x" + firstPassCircleIntersects[l].point.x + " y" + firstPassCircleIntersects[l].point.y + " index" + firstPassCircleIntersects[l]);
+				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
+				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
+				//PooChain11.transform.localScale = new Vector3(1.0f,1.0f,1.0f);
 				fullMagicList.Add(new List<PointAndIndex>());
 			}
 			
@@ -770,18 +792,20 @@ public class TerrainController : MonoBehaviour
 			{				
 				points.Add (previousPoints[i]);
 			}
+			
+			bool success1 = false;
+			success1 = buildTerrainMesh();
+			if (success1 == false)
+			{
+				Debug.Log ("still fail");
+			}
+			else 
+			{
+				Debug.Log ("PASS");
+			}
 //			}
 		}
-		bool success1 = false;
-		success1 = buildTerrainMesh();
-		if (success1 == false)
-		{
-			Debug.Log ("still fail");
-		}
-		else 
-		{
-			Debug.Log ("PASS");
-		}
+
 		
 		Debug.Log ("buildTerrainMesh()");
 	}
