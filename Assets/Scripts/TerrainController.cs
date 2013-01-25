@@ -8,6 +8,8 @@
 //only one intersection, will probably fix the same way that I will fix thebottom of the terrain being a problem
 
 //can still getoddnumber circle intersects
+
+//somehow i introduced a click on left side of terrain error
 using UnityEngine;
 using System.Collections;
 using System.IO;
@@ -57,6 +59,13 @@ public class TerrainController : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
+		for (int i = 0; i < 50; i++)
+		{
+			firstPassCircleIntersects[i] = new PointAndIndex(new Vector2(999,999), 999);
+			newBreakList[i] = new BreakObject(new PointAndIndex(new Vector2(999,999), 999),new PointAndIndex(new Vector2(999,999), 999));
+			leftExplosionIntersects[i] = new PointAndIndex(new Vector2(999,999), 999);
+			rightExplosionIntersects[i] = new PointAndIndex(new Vector2(999,999), 999);
+		}
 		segmentWidth = width/numSegments;
 	 	bool success = false;
 	 	int count = 0;
@@ -126,7 +135,10 @@ public class TerrainController : MonoBehaviour
 				{
 					float intersectLeftX = leftExplosionRadiusX;
 					float intersectLeftY = ((leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-					leftExplosionIntersects[leftExplosionIntersectsCount] = new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i + 1);
+					// = new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i + 1);
+					leftExplosionIntersects[leftExplosionIntersectsCount].point.x = intersectLeftX;
+					leftExplosionIntersects[leftExplosionIntersectsCount].point.y = intersectLeftY;
+					leftExplosionIntersects[leftExplosionIntersectsCount].index = i + 1;
 					leftExplosionIntersectsCount++;
 				}
 				//right circle upwards Intersections
@@ -135,7 +147,10 @@ public class TerrainController : MonoBehaviour
 				{
 					float intersectRightX = rightExplosionRadiusX;
 					float intersectRightY = ((rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-					rightExplosionIntersects[rightExplosionIntersectsCount] = new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i);
+					// = new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i);
+					rightExplosionIntersects[rightExplosionIntersectsCount].point.x = intersectRightX;
+					rightExplosionIntersects[rightExplosionIntersectsCount].point.y = intersectRightY;
+					rightExplosionIntersects[rightExplosionIntersectsCount].index = i;
 					rightExplosionIntersectsCount++;	
 				}
 				
@@ -254,18 +269,27 @@ public class TerrainController : MonoBehaviour
 					// if Count is even
 					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 						firstPassCircleIntersectsCount++;
 						fullMagicList.Add(new List<PointAndIndex>());
 						if (resultingX2 == x1 && resultingY2 == y1)
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
 						else
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
@@ -273,10 +297,16 @@ public class TerrainController : MonoBehaviour
 					//if Count is odd
 					else
 					{
-						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);//i
+						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);//i
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;						
 						firstPassCircleIntersectsCount++;
 						fullMagicList.Add(new List<PointAndIndex>());
-						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);//i+1
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);//i+1
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
 						firstPassCircleIntersectsCount++;
 						fullMagicList.Add(new List<PointAndIndex>());
 					}
@@ -286,7 +316,10 @@ public class TerrainController : MonoBehaviour
 				{
 					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 						firstPassCircleIntersectsCount++;
 						fullMagicList.Add(new List<PointAndIndex>());
 					}
@@ -294,13 +327,19 @@ public class TerrainController : MonoBehaviour
 					{
 						if (resultingX1 == x1 && resultingY1 == y1)
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+							// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
 						else
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i);
+							// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
@@ -311,7 +350,10 @@ public class TerrainController : MonoBehaviour
 				{
 					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
 					{
-						firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 						firstPassCircleIntersectsCount++;
 						fullMagicList.Add(new List<PointAndIndex>());
 					}
@@ -319,13 +361,19 @@ public class TerrainController : MonoBehaviour
 					{
 						if (resultingX2 == x1 && resultingY2 == y1)
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
 						else
 						{
-							firstPassCircleIntersects[firstPassCircleIntersectsCount] = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
 							firstPassCircleIntersectsCount++;
 							fullMagicList.Add(new List<PointAndIndex>());
 						}
@@ -391,7 +439,9 @@ public class TerrainController : MonoBehaviour
 			//if circle is completely in between two indexes on points
 			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
 			{
-				newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
+				// = new BreakObject(lowestLeftPoint, lowestRightPoint);
+				newBreakList[newBreakListCount].start = lowestLeftPoint;
+				newBreakList[newBreakListCount].end = lowestRightPoint;
 				newBreakListCount++;
 				//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 				deletePoints (newBreakList, mousePosition, newBreakListCount);
@@ -412,7 +462,9 @@ public class TerrainController : MonoBehaviour
 				}
 				else
 				{
-					newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
+					// = new BreakObject(lowestLeftPoint, lowestRightPoint);
+					newBreakList[newBreakListCount].start = lowestLeftPoint;
+					newBreakList[newBreakListCount].end = lowestRightPoint;
 					newBreakListCount++;
 					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					deletePoints (newBreakList, mousePosition, newBreakListCount);
@@ -479,13 +531,17 @@ public class TerrainController : MonoBehaviour
 					
 					if (lowestCircleIntersect.index > magicFoundFromThisPoint.index)
 					{
-						newBreakList[newBreakListCount] = new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect);
+						// = new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect);
+						newBreakList[newBreakListCount].start = magicFoundFromThisPoint;
+						newBreakList[newBreakListCount].end = lowestCircleIntersect;
 						newBreakListCount++;
 						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					}
 					else
 					{
-						newBreakList[newBreakListCount] = new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint);
+						// = new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint);
+						newBreakList[newBreakListCount].start = lowestCircleIntersect;
+						newBreakList[newBreakListCount].end = magicFoundFromThisPoint;
 						newBreakListCount++;
 						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					}				
@@ -527,7 +583,9 @@ public class TerrainController : MonoBehaviour
 				//if final pass through loop and lowestRight has not been used and does exist
 				if (s == firstPassCircleIntersectsCount - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
 				{
-					newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
+					// = new BreakObject(startBreak, lowestRightPoint);
+					newBreakList[newBreakListCount].start = startBreak;
+					newBreakList[newBreakListCount].end = lowestRightPoint;
 					newBreakListCount++;
 					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					continue;
@@ -535,7 +593,9 @@ public class TerrainController : MonoBehaviour
 				//if final pass through loop and lowestRight has been used or does not exist
 				if (s == firstPassCircleIntersectsCount - 1 && (lowestRightPointUsed || lowestRightPoint.index == 666))
 				{
-					newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+					// = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+					newBreakList[newBreakListCount].start = startBreak;
+					newBreakList[newBreakListCount].end = firstPassCircleIntersects[s];
 					newBreakListCount++;
 					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					continue;
@@ -561,7 +621,9 @@ public class TerrainController : MonoBehaviour
 				{
 					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index && firstPassCircleIntersects[s + 1].index < firstPassCircleIntersects[s + 2].index)
 					{
-						newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
+						// = new BreakObject(startBreak, lowestRightPoint);
+						newBreakList[newBreakListCount].start = startBreak;
+						newBreakList[newBreakListCount].end = lowestRightPoint;
 						newBreakListCount++;
 						lowestRightPointUsed = true;
 						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
@@ -585,7 +647,9 @@ public class TerrainController : MonoBehaviour
 						{							
 							if (points[firstPassCircleIntersects[s].index + 1].y < mousePosition.y)
 							{
-								newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+								// = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+								newBreakList[newBreakListCount].start = startBreak;
+								newBreakList[newBreakListCount].end = firstPassCircleIntersects[s];
 								newBreakListCount++;
 								//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 								startBreak = firstPassCircleIntersects[s + 1];
@@ -599,7 +663,9 @@ public class TerrainController : MonoBehaviour
 								continue;
 							}
 						}						
-						newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+						// = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+						newBreakList[newBreakListCount].start = startBreak;
+						newBreakList[newBreakListCount].end = firstPassCircleIntersects[s];
 						newBreakListCount++;						
 						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
 						{
@@ -655,7 +721,7 @@ public class TerrainController : MonoBehaviour
 		{
 			for (int j = 0; j < newBreakList1Count; j++)
 			{
-				if (j == i || newBreakList1[j] == null || newBreakList1[i] == null)
+				if (j == i || newBreakList1[j].start.index == 999 || newBreakList1[i].start.index == 999)
 				{
 					continue;
 				}
@@ -663,11 +729,11 @@ public class TerrainController : MonoBehaviour
 				{
 					if (newBreakList1[i].start.index == newBreakList1[j].start.index && newBreakList1[i].end.index == newBreakList1[j].end.index)
 					{
-						newBreakList1[i] = null;
+						newBreakList1[i].start.index = 999;
 						i--;
 						break;
 					}
-					newBreakList1[i] = null;
+					newBreakList1[i].start.index = 999;
 					i--;
 					break;
 				}
@@ -675,7 +741,7 @@ public class TerrainController : MonoBehaviour
 		}		
 		for (int i = 0; i < newBreakList1Count; i++)
 		{
-			if (newBreakList1[i] == null)
+			if (newBreakList1[i].start.index == 999)
 			{
 				continue;	
 			}
