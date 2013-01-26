@@ -47,7 +47,6 @@
      <Compile Include="Assets\FollowMouse.js" />
      <Compile Include="Assets\Missile.js" />
      <Compile Include="Assets\NetworkManager.js" />
-     <Compile Include="Assets\PooChainSpawner.js" />
      <Compile Include="Assets\Scripts\CameraScrolling.js" />
      <Compile Include="Assets\Scripts\CameraTarget.js" />
      <Compile Include="Assets\Scripts\MonkeyController.js" />
