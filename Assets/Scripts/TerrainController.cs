@@ -183,9 +183,13 @@ public class TerrainController : MonoBehaviour
 				bool secondIsOnLineSegment = false;				
 				float dX = x1 - x0;
 				float dY = y1 - y0;
-				float dR = Mathf.Sqrt (Mathf.Pow (dX, 2) + Mathf.Pow (dY, 2));
+				float dR = Mathf.Sqrt (dX*dX + dY*dY);
 				float d = x0*y1 - x1*y0;
+				float rSquared = r*r;
+				float dRSquared = dR*dR;
+				float dSquared = d*d;
 				float incidence = r*r * dR*dR - d*d;
+				float sqrtMath = Mathf.Sqrt (rSquared * dRSquared - dSquared);
 				float resultingX1 = 0;
 				float resultingX2 = 0;
 				float resultingY1 = 0;
@@ -193,18 +197,10 @@ public class TerrainController : MonoBehaviour
 
 				if (incidence > 0)
 				{
-					if (r*r*dR*dR-d*d < 0.0f)
-					{
-						Debug.Log ("LESS THAN MOTHERFUCKING 00000000000000000000000000000000000000000000000000000000000");	
-					}
-					if (dR == 0.0f)
-					{
-						Debug.Log ("LESS THAN MOTHERFUCKING 00000000000000000000000000000000000000000000000000000000000");
-					}
-					resultingX1 = (d * dY + Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-					resultingY1 = -(d * dX - Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-					resultingX2 = (d * dY - Sgn(dY) * dX * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
-					resultingY2 = -(d * dX + Mathf.Abs (dY) * Mathf.Sqrt (r*r * dR*dR - d*d)) / (dR*dR);
+					resultingX1 = (d * dY + Sgn(dY) * dX * sqrtMath) / (dRSquared);
+					resultingY1 = -(d * dX - Mathf.Abs (dY) * sqrtMath) / (dRSquared);
+					resultingX2 = (d * dY - Sgn(dY) * dX * sqrtMath) / (dRSquared);
+					resultingY2 = -(d * dX + Mathf.Abs (dY) * sqrtMath) / (dRSquared);
 
 					float distance01 = Mathf.Sqrt((resultingX1 - x0) * (resultingX1 - x0) + (resultingY1 - y0) * (resultingY1 - y0));
 					float distance02 = Mathf.Sqrt((resultingX2 - x0) * (resultingX2 - x0) + (resultingY2 - y0) * (resultingY2 - y0));
@@ -501,15 +497,15 @@ public class TerrainController : MonoBehaviour
 					return;
 				}
 			}
-			Debug.Log (firstPassCircleIntersectsCount + "COUNT");
-			//for debug purposes: turns on circle intersect debug information
-			for (int l = 0; l < firstPassCircleIntersectsCount; l++)
-			{
-				//Debug.Log("circleI x" + firstPassCircleIntersects[l].point.x + " y" + firstPassCircleIntersects[l].point.y + " index" + firstPassCircleIntersects[l]);
-				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
-				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
-				PooChain11.transform.localScale += new Vector3(1.0f,1.0f,1.0f);
-			}
+//			Debug.Log (firstPassCircleIntersectsCount + "COUNT");
+//			//for debug purposes: turns on circle intersect debug information
+//			for (int l = 0; l < firstPassCircleIntersectsCount; l++)
+//			{
+//				//Debug.Log("circleI x" + firstPassCircleIntersects[l].point.x + " y" + firstPassCircleIntersects[l].point.y + " index" + firstPassCircleIntersects[l]);
+//				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
+//				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
+//				PooChain11.transform.localScale += new Vector3(1.0f,1.0f,1.0f);
+//			}
 
 			//second pass through Points, finding "magic" points
 //			//might want to only use magic points if its the top half of the circle thats intersected, the way it is now is if any
@@ -610,7 +606,7 @@ public class TerrainController : MonoBehaviour
 				{
 					newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
 					newBreakListCount++;
-					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					continue;
 				}
 				//if final pass through loop and lowestRight has been used or does not exist
@@ -618,7 +614,7 @@ public class TerrainController : MonoBehaviour
 				{
 					newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
 					newBreakListCount++;
-					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					continue;
 				}
 				//if first pass through loop, sets start break
@@ -630,7 +626,7 @@ public class TerrainController : MonoBehaviour
 						lowestLeftPointUsed = true;
 						startBreakIsLeftPoint = true;
 						continue;
-					}	
+					}
 					else
 					{
 						startBreak = firstPassCircleIntersects[0];
@@ -638,6 +634,7 @@ public class TerrainController : MonoBehaviour
 					}
 				}
 				//if accesing an exitCircle and is CounterClockwise(but not last exit circle because it would go into other if statement above)
+				//if there is a problem with weird terrain after an explosion, this is the cause, probably just want to completely rethink this whole section, also recently changed MagicPoitnsto Array instead of arrayLIst, but i went back in time and saw thtat it was having the problem before that but i figured i would just mention it
 				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
 				{
 					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index && firstPassCircleIntersects[s + 1].index < firstPassCircleIntersects[s + 2].index)
@@ -645,7 +642,7 @@ public class TerrainController : MonoBehaviour
 						newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
 						newBreakListCount++;
 						lowestRightPointUsed = true;
-						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+						Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
 						{
 							Debug.Log ("should never happen?================lowestLeft = startBreak but not first break");//maybe?
@@ -662,13 +659,13 @@ public class TerrainController : MonoBehaviour
 					else
 					{
 						//might need to put OR statement in its own if statement it appears to work, for now, need more thinking
-						if (startBreakIsLeftPoint == true)//COMENTED OUT ON 1-26 to fixleftPoint not being able to start somewhere besides first start || (!lowestRightPointUsed && lowestRightPoint.index != 666))
+						if ((startBreakIsLeftPoint == true) || (!lowestRightPointUsed && lowestRightPoint.index != 666))
 						{
 							if (points[firstPassCircleIntersects[s].index + 1].y < mousePosition.y)
 							{
 								newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
 								newBreakListCount++;
-								//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+								Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 								startBreak = firstPassCircleIntersects[s + 1];
 								startBreakIsLeftPoint = false;
 								s++;
@@ -682,7 +679,7 @@ public class TerrainController : MonoBehaviour
 						}
 						newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
 						newBreakListCount++;
-						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
+						if (!lowestLeftPointUsed && lowestLeftPoint.index != 666 && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
 						{
 							Debug.Log ("used my kewl tricks");
 							startBreak = lowestLeftPoint;
@@ -692,7 +689,7 @@ public class TerrainController : MonoBehaviour
 						{
 							startBreak = firstPassCircleIntersects[s + 1];
 						}
-						//Debug.Log (newBreakList[newBreakList.Count - 1].start.index + "to" + newBreakList[newBreakList.Count - 1].end.index);
+						Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 						s++;
 						continue;
 					}
