@@ -37,9 +37,12 @@ function OnServerInitialized() {
 	spawnPlayer();
 }
 
-function OnConnectedToServer() {
+function OnConnectedToServer() 
+{
 	spawnPlayer();
 }
+
+
 
 function OnMasterServerEvent(mse: MasterServerEvent) {
 	if (mse == MasterServerEvent.RegistrationSucceeded) {
@@ -76,3 +79,4 @@ function OnGUI () {
 		}
 	}
 }
+

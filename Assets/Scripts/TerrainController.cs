@@ -34,7 +34,7 @@ public class TerrainController : MonoBehaviour
 
 	public int warpTime;
 	public float warpScale;
-	List<Vector2> points = new List<Vector2>();
+	public List<Vector2> points = new List<Vector2>();
 	List<Vector2> previousPoints = new List<Vector2>();
 	GameObject[] segments;
 
@@ -100,7 +100,22 @@ public class TerrainController : MonoBehaviour
 
 	}
 
-
+	void OnPlayerConnected()
+	{
+		Debug.Log("yofhjd");
+		for (int i = 0; i < points.Count; i++)
+		{
+			networkView.RPC("SendTerrain", RPCMode.Others, points[i], i);
+		}
+	}
+	
+	[RPC] 
+	void SendTerrain(Vector2 point, int placement)
+	{
+		Debug.Log("yoyoy");
+		points[placement] = point;
+	}
+	
 	// Update is called once per frame
 	void Update()
 	{
