@@ -105,21 +105,24 @@ public class TerrainController : MonoBehaviour
 		Debug.Log("yofhjd");
 		for (int i = 0; i < points.Count; i++)
 		{
-			networkView.RPC("SendTerrain", RPCMode.Others, points[i].x, i, points[i].y);
+			networkView.RPC("SendTerrain", RPCMode.Others, points[i].x, i, points[i].y, points.Count);
 		}
 	}
 	
 	[RPC]
-	void SendTerrain(float pointX, int placement, float pointY)
+	void SendTerrain(float pointX, int placement, float pointY, int pointsCount)
 	{
-		Vector2 pizoint = new Vector2 (pointX , pointY );
+		Vector2 pizoint = new Vector2 (pointX , pointY);
 		Debug.Log("yoyoy");
-		points[placement] = pizoint ;
-		
-		//if (placement == points.Count)
-		//{
-			buildTerrainMesh();
-		//}
+		points[placement] = pizoint;
+		if (placement == pointsCount - 1 && pointsCount < points.Count)
+		{
+			points.RemoveRange(pointsCount - 1, (points.Count - 1) - (pointsCount - 1));
+		}
+		if (placement >= points.Count)
+		{
+			points.Add (pizoint);
+		}
 	}
 	
 	// Update is called once per frame
