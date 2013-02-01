@@ -350,7 +350,7 @@ if (networkView.isMine) {
 
 	UpdateSmoothedMovementDirection();
 	
-	AnimateCharacter();		
+	AnimateCharacter();
 
 	// Apply gravity
 	// - extra power jump modifies gravity
@@ -441,6 +441,7 @@ function OnControllerColliderHit (hit : ControllerColliderHit)
 
 function FlingPoo ()
 {
+	Debug.Log("power " + power);
 	var a = Input.GetAxisRaw ("Angle");
 	var p = Input.GetAxisRaw ("Power");
 
@@ -459,8 +460,8 @@ function FlingPoo ()
 	if (power < 0) {
 		power = 0;
 	}
-	if (power > 100) {
-		power = 100;
+	if (power > 400) {
+		power = 400;
 	}
 	
 	//Debug.Log("power" + power);
@@ -482,7 +483,8 @@ function FlingPoo ()
 	
 	if (fire1) {
     //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    Network.Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation, 0);
+    var MirvClone = Network.Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation, 0);
+    MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
     //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
     fire1 = false;
     }

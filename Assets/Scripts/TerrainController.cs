@@ -26,7 +26,7 @@ public class TerrainController : MonoBehaviour
 	public int numSegments;
 	public float width;
 	public float height;
-	float explosionRadius = 13.0f;
+	float explosionRadius = 5.0f;
 
 	float EPSILON = .0001f;
 
@@ -99,7 +99,638 @@ public class TerrainController : MonoBehaviour
 	{
 
 	}
+	
+	void Explode(Vector2 mousePosition) 
+	{
+			// indexes selected are the ones you want to destroy		
+		
+//		Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
+//		//optimize for if sircle is no where near terrain possibly, just return
+//		if (mousePositionTemp.y < 1.0f)
+//		{
+//			return;
+//		}
+//		Vector2 mousePosition;
+//		mousePosition.x = mousePositionTemp.x;
+//		mousePosition.y = mousePositionTemp.y;
+		//used to determine if the line segment and next line segment touch the circle but stay on the same side
+		bool previousHadOneEqualTo = false;
+		bool previousStartInsideRadius = false;
 
+		//first pass through Points, determines all Left, Right, and Circle Intersections
+		for (int i = 0; i < points.Count - 1; i++)
+		{
+			//used to determine if the line segment and next line segment touch the circle but stay on the same side
+			bool thisStartsInsideRadius = false;
+			bool thisEndsInsideRadius = false;
+			bool thisHadOneEqualTo = false;
+
+			float leftExplosionRadiusX = mousePosition.x - explosionRadius;
+			float rightExplosionRadiusX = mousePosition.x + explosionRadius;
+			float percentageAcrossRightX = (rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x);
+			float percentageAcrossLeftX = (leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x);
+
+			//left circle upwards Intersections
+			//uses end points if they are equal to
+			if (((points[i].x < leftExplosionRadiusX && points[i + 1].x >= leftExplosionRadiusX) || (points[i].x > leftExplosionRadiusX && points[i + 1].x <= leftExplosionRadiusX)) && (points[i + 1].y - points[i].y) * percentageAcrossLeftX + points[i].y > mousePosition.y)
+			{
+				float intersectLeftX = leftExplosionRadiusX;
+				float intersectLeftY = ((leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
+				// = new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i + 1);
+				leftExplosionIntersects[leftExplosionIntersectsCount].point.x = intersectLeftX;
+				leftExplosionIntersects[leftExplosionIntersectsCount].point.y = intersectLeftY;
+				leftExplosionIntersects[leftExplosionIntersectsCount].index = i + 1;
+				leftExplosionIntersectsCount++;
+			}
+			//right circle upwards Intersections
+			//uses start points if they are equal to
+			if (((points[i].x <= rightExplosionRadiusX && points[i + 1].x > rightExplosionRadiusX) || (points[i].x >= rightExplosionRadiusX && points[i + 1].x < rightExplosionRadiusX)) && (points[i + 1].y - points[i].y) * percentageAcrossRightX + points[i].y > mousePosition.y)
+			{
+				float intersectRightX = rightExplosionRadiusX;
+				float intersectRightY = ((rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
+				// = new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i);
+				rightExplosionIntersects[rightExplosionIntersectsCount].point.x = intersectRightX;
+				rightExplosionIntersects[rightExplosionIntersectsCount].point.y = intersectRightY;
+				rightExplosionIntersects[rightExplosionIntersectsCount].index = i;
+				rightExplosionIntersectsCount++;	
+			}
+
+
+			//line segment Circle intersections
+			float x0 = points[i].x - mousePosition.x;
+			float y0 = points[i].y - mousePosition.y;
+			float x1 = points[i+1].x - mousePosition.x;
+			float y1 = points[i+1].y - mousePosition.y;
+			float r = explosionRadius;
+
+			if (Mathf.Sqrt (x0*x0 + y0*y0) < explosionRadius)
+			{
+				thisStartsInsideRadius = true;
+			}				
+			if (Mathf.Sqrt (x1*x1 + y1*y1) < explosionRadius)
+			{
+				thisEndsInsideRadius = true;
+			}
+
+			float x2 = points[i+1].x - mousePosition.x;
+			float y2 = points[i+1].y - mousePosition.y;
+			bool nextFirstIsOnLineSegment = false;
+			bool nextSecondIsOnLineSegment = false;				
+			bool firstIsOnLineSegment = false;
+			bool secondIsOnLineSegment = false;				
+			float dX = x1 - x0;
+			float dY = y1 - y0;
+			float dR = Mathf.Sqrt (dX*dX + dY*dY);
+			float d = x0*y1 - x1*y0;
+			float rSquared = r*r;
+			float dRSquared = dR*dR;
+			float dSquared = d*d;
+			float incidence = r*r * dR*dR - d*d;
+			float sqrtMath = Mathf.Sqrt (rSquared * dRSquared - dSquared);
+			float resultingX1 = 0;
+			float resultingX2 = 0;
+			float resultingY1 = 0;
+			float resultingY2 = 0;
+
+			if (incidence > 0)
+			{
+				resultingX1 = (d * dY + Sgn(dY) * dX * sqrtMath) / (dRSquared);
+				resultingY1 = -(d * dX - Mathf.Abs (dY) * sqrtMath) / (dRSquared);
+				resultingX2 = (d * dY - Sgn(dY) * dX * sqrtMath) / (dRSquared);
+				resultingY2 = -(d * dX + Mathf.Abs (dY) * sqrtMath) / (dRSquared);
+
+				float distance01 = Mathf.Sqrt((resultingX1 - x0) * (resultingX1 - x0) + (resultingY1 - y0) * (resultingY1 - y0));
+				float distance02 = Mathf.Sqrt((resultingX2 - x0) * (resultingX2 - x0) + (resultingY2 - y0) * (resultingY2 - y0));
+
+				bool D1greaterthanD2 = false;
+				if (distance01 > distance02)
+				{
+					D1greaterthanD2 = true;
+					float tempResultX = resultingX1;
+					float tempResultY = resultingY1;
+					resultingX1 = resultingX2;
+					resultingY1 = resultingY2;
+					resultingX2 = tempResultX;
+					resultingY2 = tempResultY;
+				}
+
+				//if x is = both then just check if its in between the ys, same for the other way 'round(because vertical lines wont be greater than start x it will be equal to, but it checks > start and<=end)
+				if (resultingX1 <= x0 + EPSILON && resultingX1 >= x0 - EPSILON && resultingX1 <= x1 + EPSILON && resultingX1 >= x1 - EPSILON)
+				{
+					if (resultingY1 > y0 && resultingY1 <= y1 || resultingY1 >= y1 && resultingY1 < y0)
+					{
+						firstIsOnLineSegment = true;
+					}
+				}
+				if (resultingX2 <= x0 + EPSILON && resultingX2 >= x0 - EPSILON && resultingX2 <= x1 + EPSILON && resultingX2 >= x1 - EPSILON)
+				{
+					if (resultingY2 > y0 && resultingY2 <= y1 || resultingY2 >= y1 && resultingY2 < y0)
+					{
+						secondIsOnLineSegment = true;
+					}
+				}
+				if (resultingY1 <= y0 + EPSILON && resultingY1 >= y0 - EPSILON && resultingY1 <= y1 + EPSILON && resultingY1 >= y1 - EPSILON)
+				{
+					if (resultingX1 > x0 && resultingX1 <= x1 || resultingX1 >= x1 && resultingX1 < x0)
+					{
+						firstIsOnLineSegment = true;
+					}
+				}
+				if (resultingY2 <= y0 + EPSILON && resultingY2 >= y0 - EPSILON && resultingY2 <= y1 + EPSILON && resultingY1 >= y1 - EPSILON)
+				{
+					if (resultingX2 > x0 && resultingX2 <= x1 || resultingX2 >= x1 && resultingX2 < x0)
+					{
+						secondIsOnLineSegment = true;
+					}
+				}
+
+				if (!firstIsOnLineSegment && secondIsOnLineSegment || firstIsOnLineSegment && !secondIsOnLineSegment)
+				{
+					thisHadOneEqualTo = true;
+				}
+
+				//ignore the starts of the linesegments and only use the ends if equal to
+				if ((resultingX1 > x0 && resultingX1 <= x1 && resultingY1 > y0 && resultingY1 <= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 < y0 && resultingY1 >= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 > y0 && resultingY1 <= y1) || (resultingX1 > x0 && resultingX1 <= x1 && resultingY1 < y0 && resultingY1 >= y1))
+				{
+					firstIsOnLineSegment = true;
+				}
+				if ((resultingX2 > x0 && resultingX2 <= x1 && resultingY2 > y0 && resultingY2 <= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 < y0 && resultingY2 >= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 > y0 && resultingY2 <= y1) || (resultingX2 > x0 && resultingX2 <= x1 && resultingY2 < y0 && resultingY2 >= y1))
+				{
+					secondIsOnLineSegment = true;
+				}
+			}
+			//if two Intersections
+			if (firstIsOnLineSegment && secondIsOnLineSegment)
+			{
+				thisHadOneEqualTo = false;
+				// if Count is even
+				if (firstPassCircleIntersectsCount % 2.0 == 0.0)
+				{
+					// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+					firstPassCircleIntersectsCount++;
+					fullMagicListCount++;
+					if (resultingX2 == x1 && resultingY2 == y1)
+					{
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+					else
+					{
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+				}
+				//if Count is odd
+				else
+				{
+					// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);//i
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;						
+					firstPassCircleIntersectsCount++;
+					fullMagicListCount++;
+					// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);//i+1
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
+					firstPassCircleIntersectsCount++;
+					fullMagicListCount++;
+				}
+			}
+			// if only first Intersection
+			if (firstIsOnLineSegment && !secondIsOnLineSegment)
+			{
+				if (firstPassCircleIntersectsCount % 2.0 == 0.0)
+				{
+					// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+					firstPassCircleIntersectsCount++;
+					fullMagicListCount++;
+				}
+				else
+				{
+					if (resultingX1 == x1 && resultingY1 == y1)
+					{
+						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+					else
+					{
+						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+				}
+			}
+			//if only second intersection
+			if (!firstIsOnLineSegment && secondIsOnLineSegment)
+			{
+				if (firstPassCircleIntersectsCount % 2.0 == 0.0)
+				{
+					// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+					firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+					firstPassCircleIntersectsCount++;
+					fullMagicListCount++;
+				}
+				else
+				{
+					if (resultingX2 == x1 && resultingY2 == y1)
+					{
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+					else
+					{
+						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
+						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
+						firstPassCircleIntersectsCount++;
+						fullMagicListCount++;
+					}
+				}
+			}
+			//in order to ignore the intersect if it doesnt fully cross butt-just lands on an endpoint and then goes back the way it came
+			if (previousHadOneEqualTo && previousStartInsideRadius && ((!firstIsOnLineSegment && secondIsOnLineSegment || firstIsOnLineSegment && !secondIsOnLineSegment) || ((!firstIsOnLineSegment && !secondIsOnLineSegment) && thisEndsInsideRadius)))
+			{
+				firstPassCircleIntersectsCount--;
+			}
+			if (previousHadOneEqualTo && !previousStartInsideRadius && (!firstIsOnLineSegment && !secondIsOnLineSegment) && !thisEndsInsideRadius)
+			{
+				firstPassCircleIntersectsCount--;
+			}
+			previousStartInsideRadius = thisStartsInsideRadius;
+			previousHadOneEqualTo = thisHadOneEqualTo;
+		}
+
+		//had to do 666 thing because below this it cant use unassigned even though it would never go into that loop unless it has already gone through this one
+		PointAndIndex lowestLeftPoint = new PointAndIndex(new Vector2(666,666), 666);
+		PointAndIndex lowestRightPoint = new PointAndIndex(new Vector2(666,666), 666);
+		//if leftExplosionIntersects are odd number above, set lowest Point
+		if (leftExplosionIntersectsCount % 2.0 != 0.0)
+		{
+			lowestLeftPoint = leftExplosionIntersects[0];
+			for (int j = 1; j < leftExplosionIntersectsCount; j++)
+			{
+				if (leftExplosionIntersects[j].point.y < lowestLeftPoint.point.y)
+				{
+					lowestLeftPoint = leftExplosionIntersects[j];
+				}
+			}
+		}
+		//if rightExplosionIntersects are odd number above, set lowest Point
+		if (rightExplosionIntersectsCount % 2.0 != 0.0)
+		{
+			lowestRightPoint = rightExplosionIntersects[0];
+			for (int k = 1; k < rightExplosionIntersectsCount; k++)
+			{
+				if (rightExplosionIntersects[k].point.y < lowestRightPoint.point.y)
+				{
+					lowestRightPoint = rightExplosionIntersects[k];
+				}
+			}
+		}			
+
+		//if circleIntersects gets odd number of intersects you are going to want to ignore the shot
+		//it's sad, i know, but it's basically perfect except when you click the same spot a bunch of times so fuck you
+		//may want to eventually gowith left andrightbreak if !=666, miunno
+		if (firstPassCircleIntersectsCount % 2 !=0.0)
+		{
+			Debug.Log ("ODD # of circleIntersectssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
+			//previousPoints.Clear ();
+			firstPassCircleIntersectsCount = 0;
+			//fullMagicList.Clear ();
+			newBreakListCount = 0;
+			leftExplosionIntersectsCount = 0;
+			rightExplosionIntersectsCount = 0;
+			for (int i = 0; i < fullMagicListCount; i++)
+			{
+				fullMagicListCountArray[i] = 0;
+			}
+			fullMagicListCount = 0;
+			return;
+		}			
+
+
+		//if circle is completely in between two indexes on points
+		if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
+		{
+			newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
+			newBreakListCount++;
+			//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+			deletePoints (newBreakList, mousePosition, newBreakListCount);
+			//fullMagicList.Clear ();
+			firstPassCircleIntersectsCount = 0;
+			newBreakListCount = 0;
+			leftExplosionIntersectsCount = 0;
+			rightExplosionIntersectsCount = 0;				
+			for (int i = 0; i < fullMagicListCount; i++)
+			{
+				fullMagicListCountArray[i] = 0;
+			}
+			fullMagicListCount = 0;
+			return;
+		}
+
+		//if no circleIntersects then it's an easy break and quit
+		if (firstPassCircleIntersectsCount == 0)
+		{
+			if (leftExplosionIntersectsCount % 2.0 == 0.0 && rightExplosionIntersectsCount % 2.0 == 0.0)
+			{
+				//fullMagicList.Clear ();
+				firstPassCircleIntersectsCount = 0;			
+				newBreakListCount = 0;
+				leftExplosionIntersectsCount = 0;
+				rightExplosionIntersectsCount = 0;
+				for (int i = 0; i < fullMagicListCount; i++)
+				{
+					fullMagicListCountArray[i] = 0;
+				}
+				fullMagicListCount = 0;
+				return;
+			}
+			else
+			{
+				newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
+				newBreakListCount++;
+				//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				deletePoints (newBreakList, mousePosition, newBreakListCount);
+				//fullMagicList.Clear ();
+				firstPassCircleIntersectsCount = 0;			
+				newBreakListCount = 0;
+				leftExplosionIntersectsCount = 0;
+				rightExplosionIntersectsCount = 0;
+				for (int i = 0; i < fullMagicListCount; i++)
+				{
+					fullMagicListCountArray[i] = 0;
+				}
+				fullMagicListCount = 0;
+				return;
+			}
+		}
+//			Debug.Log (firstPassCircleIntersectsCount + "COUNT");
+//			//for debug purposes: turns on circle intersect debug information
+//			for (int l = 0; l < firstPassCircleIntersectsCount; l++)
+//			{
+//				//Debug.Log("circleI x" + firstPassCircleIntersects[l].point.x + " y" + firstPassCircleIntersects[l].point.y + " index" + firstPassCircleIntersects[l]);
+//				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
+//				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
+//				PooChain11.transform.localScale += new Vector3(1.0f,1.0f,1.0f);
+//			}
+
+		//second pass through Points, finding "magic" points
+//			//might want to only use magic points if its the top half of the circle thats intersected, the way it is now is if any
+//			//circle intersection has a magic point, might be able to cut performance but it works fine
+		for (int m = 0; m < points.Count - 1; m++)
+		{
+			for (int n = 0; n < firstPassCircleIntersectsCount; n++)//could be fullMagicList.Count
+			{
+				//fixes it so it wont try to put a magic point at bottom left or bottom right index
+				if (firstPassCircleIntersects[n].index == 0 || firstPassCircleIntersects[n].index == points.Count - 1)
+				{
+					continue;
+				}
+				//ignoring starts of line segments
+				if ((points[m].x <= firstPassCircleIntersects[n].point.x && points[m + 1].x > firstPassCircleIntersects[n].point.x) || (points[m].x > firstPassCircleIntersects[n].point.x && points[m + 1].x <= firstPassCircleIntersects[n].point.x))
+				{
+					float intersectX = firstPassCircleIntersects[n].point.x;
+					float intersectY = ((firstPassCircleIntersects[n].point.x - points[m].x) / (points[m + 1].x - points[m].x)) * (points[m + 1].y - points[m].y) + points[m].y;
+					if (intersectY > firstPassCircleIntersects[n].point.y + .1f) //.01f needs to be epsilon maybe
+					{
+						fullMagicList[n,fullMagicListCountArray[n]] = (new PointAndIndex(new Vector2(intersectX, intersectY), m + 1));
+						fullMagicListCountArray[n]++;
+					}
+				}
+			}
+		}
+
+		//go through fullMagicList to see if there are any odd Counts and if so, determine the lowest Y value to use as
+		//the magic value, then break every magic number to the number it was determined from
+
+		//have to assign it or it wont work, ask zeb bout better waytadodis
+		PointAndIndex magicFoundFromThisPoint = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
+
+		for (int o = 0; o < firstPassCircleIntersectsCount; o++)//could use fullMagic.Count
+		{	//if odd Count
+			if (fullMagicListCountArray[o] % 2.0 != 0.0)
+			{
+				PointAndIndex lowestCircleIntersect = fullMagicList[o,0];
+
+				for (int i = 0; i < fullMagicListCountArray[o]; i++)
+				{
+					if (fullMagicList[o,i].point.y < lowestCircleIntersect.point.y)
+					{
+						lowestCircleIntersect = fullMagicList[o,i];
+					}
+				}
+
+				magicFoundFromThisPoint = firstPassCircleIntersects[o];
+
+				if (lowestCircleIntersect.index > magicFoundFromThisPoint.index)
+				{
+					newBreakList[newBreakListCount] = new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect);
+					newBreakListCount++;
+					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				}
+				else
+				{
+					newBreakList[newBreakListCount] = new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint);
+					newBreakListCount++;
+					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				}				
+			}
+		}
+		//for enter and exit angle determination
+		Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
+		float lastExitX = firstPassCircleIntersects[firstPassCircleIntersectsCount - 1].point.x - mousePosition.x;
+		float lastExitY = firstPassCircleIntersects[firstPassCircleIntersectsCount - 1].point.y - mousePosition.y;
+		Vector2 fromVector2 = firstEnter;
+		Vector2 toVector2 = new Vector2(lastExitX, lastExitY);			
+		float firstEnterToLastExitAngle = Vector2.Angle(fromVector2, toVector2);
+		Vector3 cross = Vector3.Cross(fromVector2, toVector2);
+
+		//cross.z>0 would be for clockwise angle?
+		if (cross.z < 0)
+		{
+		    firstEnterToLastExitAngle = 360 - firstEnterToLastExitAngle;
+		}
+
+		//have to assign it or it wont work, ask zeb bout better waytadodis
+		PointAndIndex startBreak = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
+
+		bool lowestRightPointUsed = false;
+		bool lowestLeftPointUsed = false;
+		bool startBreakIsLeftPoint = false;
+
+//			//it appears that i could combine this loop with the fullMagicList one above
+		for (int s = 0; s < firstPassCircleIntersectsCount; s = s + 1)
+		{
+			Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
+			float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
+			Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
+			if (cross1.z < 0)
+			{
+				firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
+			}
+			//if final pass through loop and lowestRight has not been used and does exist
+			if (s == firstPassCircleIntersectsCount - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
+			{
+				newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
+				newBreakListCount++;
+				Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				continue;
+			}
+			//if final pass through loop and lowestRight has been used or does not exist
+			if (s == firstPassCircleIntersectsCount - 1 && (lowestRightPointUsed || lowestRightPoint.index == 666))
+			{
+				newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+				newBreakListCount++;
+				Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				continue;
+			}
+			//if first pass through loop, sets start break
+			if (s == 0)
+			{
+				if (leftExplosionIntersectsCount % 2.0 != 0.0 && lowestLeftPoint.index <= firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
+				{						
+					startBreak = lowestLeftPoint;
+					lowestLeftPointUsed = true;
+					startBreakIsLeftPoint = true;
+					continue;
+				}
+				else
+				{
+					startBreak = firstPassCircleIntersects[0];
+					continue;
+				}
+			}
+			//if accesing an exitCircle and is CounterClockwise(but not last exit circle because it would go into other if statement above)
+			//if there is a problem with weird terrain after an explosion, this is the cause, probably just want to completely rethink this whole section, also recently changed MagicPoitnsto Array instead of arrayLIst, but i went back in time and saw thtat it was having the problem before that but i figured i would just mention it
+			if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
+			{
+				if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index && firstPassCircleIntersects[s + 1].index < firstPassCircleIntersects[s + 2].index)
+				{
+					newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
+					newBreakListCount++;
+					lowestRightPointUsed = true;
+					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
+					{
+						Debug.Log ("should never happen?================lowestLeft = startBreak but not first break");//maybe?
+						startBreak = lowestLeftPoint;
+						lowestLeftPointUsed = true;
+					}
+					else
+					{
+						startBreak = firstPassCircleIntersects[s + 1];
+					}
+					s++;
+					continue;
+				}
+				else
+				{
+					//might need to put OR statement in its own if statement it appears to work, for now, need more thinking
+					if ((startBreakIsLeftPoint == true) || (!lowestRightPointUsed && lowestRightPoint.index != 666))
+					{
+						if (points[firstPassCircleIntersects[s].index + 1].y < mousePosition.y)
+						{
+							newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+							newBreakListCount++;
+							Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+							startBreak = firstPassCircleIntersects[s + 1];
+							startBreakIsLeftPoint = false;
+							s++;
+							continue;
+						}
+						else 
+						{
+							s++;
+							continue;
+						}
+					}
+					newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
+					newBreakListCount++;
+					if (!lowestLeftPointUsed && lowestLeftPoint.index != 666 && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
+					{
+						Debug.Log ("used my kewl tricks");
+						startBreak = lowestLeftPoint;
+						lowestLeftPointUsed = true;
+					}
+					else
+					{
+						startBreak = firstPassCircleIntersects[s + 1];
+					}
+					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					s++;
+					continue;
+				}
+			}
+			//if accessing an exitCircle and is !CounterClockwise
+			if (s % 2 != 0.0 && firstEnterToCurrentExitAngle > firstEnterToLastExitAngle)
+			{
+				s++;
+				continue;
+			}
+			//if accessing an enterCircle and is not first pass through loop
+			//i dont think this ever happens, it would be an exit circle since start circle would
+			//have been added earlier and then s++ to skip to exit
+			if (s % 2 == 0.0 && s != 0)
+			{
+				Debug.Log ("jew===========================------------===============================");
+			}
+		}
+		
+		for (int i = 0; i < points.Count; i++)
+		{	
+			previousPoints.Add (points[i]);
+		}
+		
+		deletePoints (newBreakList, mousePosition, newBreakListCount);
+		previousPoints.Clear ();
+		firstPassCircleIntersectsCount = 0;
+		//fullMagicList.Clear ();
+		newBreakListCount = 0;
+		leftExplosionIntersectsCount = 0;
+		rightExplosionIntersectsCount = 0;
+		for (int i = 0; i < fullMagicListCount; i++)
+		{
+			fullMagicListCountArray[i] = 0;
+		}
+		fullMagicListCount = 0;
+		
+	}
+	void OnTriggerEnter(Collider other) 
+	{
+		Explode(other.transform.position);
+		Destroy(other.gameObject);
+    }
+	
 	void OnPlayerConnected()
 	{
 		Debug.Log("yofhjd");
@@ -128,629 +759,7 @@ public class TerrainController : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		// indexes selected are the ones you want to destroy		
-		if (Input.GetMouseButtonDown(0))
-		{			
-			Vector3 mousePositionTemp = Camera.mainCamera.ScreenToWorldPoint(Input.mousePosition);
-			//optimize for if sircle is no where near terrain possibly, just return
-			if (mousePositionTemp.y < 1.0f)
-			{
-				return;
-			}
-			Vector2 mousePosition;
-			mousePosition.x = mousePositionTemp.x;
-			mousePosition.y = mousePositionTemp.y;
-			//used to determine if the line segment and next line segment touch the circle but stay on the same side
-			bool previousHadOneEqualTo = false;
-			bool previousStartInsideRadius = false;
 
-			//first pass through Points, determines all Left, Right, and Circle Intersections
-			for (int i = 0; i < points.Count - 1; i++)
-			{
-				//used to determine if the line segment and next line segment touch the circle but stay on the same side
-				bool thisStartsInsideRadius = false;
-				bool thisEndsInsideRadius = false;
-				bool thisHadOneEqualTo = false;
-
-				float leftExplosionRadiusX = mousePosition.x - explosionRadius;
-				float rightExplosionRadiusX = mousePosition.x + explosionRadius;
-				float percentageAcrossRightX = (rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x);
-				float percentageAcrossLeftX = (leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x);
-
-				//left circle upwards Intersections
-				//uses end points if they are equal to
-				if (((points[i].x < leftExplosionRadiusX && points[i + 1].x >= leftExplosionRadiusX) || (points[i].x > leftExplosionRadiusX && points[i + 1].x <= leftExplosionRadiusX)) && (points[i + 1].y - points[i].y) * percentageAcrossLeftX + points[i].y > mousePosition.y)
-				{
-					float intersectLeftX = leftExplosionRadiusX;
-					float intersectLeftY = ((leftExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-					// = new PointAndIndex(new Vector2(intersectLeftX, intersectLeftY), i + 1);
-					leftExplosionIntersects[leftExplosionIntersectsCount].point.x = intersectLeftX;
-					leftExplosionIntersects[leftExplosionIntersectsCount].point.y = intersectLeftY;
-					leftExplosionIntersects[leftExplosionIntersectsCount].index = i + 1;
-					leftExplosionIntersectsCount++;
-				}
-				//right circle upwards Intersections
-				//uses start points if they are equal to
-				if (((points[i].x <= rightExplosionRadiusX && points[i + 1].x > rightExplosionRadiusX) || (points[i].x >= rightExplosionRadiusX && points[i + 1].x < rightExplosionRadiusX)) && (points[i + 1].y - points[i].y) * percentageAcrossRightX + points[i].y > mousePosition.y)
-				{
-					float intersectRightX = rightExplosionRadiusX;
-					float intersectRightY = ((rightExplosionRadiusX - points[i].x) / (points[i + 1].x - points[i].x)) * (points[i + 1].y - points[i].y) + points[i].y;
-					// = new PointAndIndex(new Vector2(intersectRightX, intersectRightY), i);
-					rightExplosionIntersects[rightExplosionIntersectsCount].point.x = intersectRightX;
-					rightExplosionIntersects[rightExplosionIntersectsCount].point.y = intersectRightY;
-					rightExplosionIntersects[rightExplosionIntersectsCount].index = i;
-					rightExplosionIntersectsCount++;	
-				}
-
-
-				//line segment Circle intersections
-				float x0 = points[i].x - mousePosition.x;
-				float y0 = points[i].y - mousePosition.y;
-				float x1 = points[i+1].x - mousePosition.x;
-				float y1 = points[i+1].y - mousePosition.y;
-				float r = explosionRadius;
-
-				if (Mathf.Sqrt (x0*x0 + y0*y0) < explosionRadius)
-				{
-					thisStartsInsideRadius = true;
-				}				
-				if (Mathf.Sqrt (x1*x1 + y1*y1) < explosionRadius)
-				{
-					thisEndsInsideRadius = true;
-				}
-
-				float x2 = points[i+1].x - mousePosition.x;
-				float y2 = points[i+1].y - mousePosition.y;
-				bool nextFirstIsOnLineSegment = false;
-				bool nextSecondIsOnLineSegment = false;				
-				bool firstIsOnLineSegment = false;
-				bool secondIsOnLineSegment = false;				
-				float dX = x1 - x0;
-				float dY = y1 - y0;
-				float dR = Mathf.Sqrt (dX*dX + dY*dY);
-				float d = x0*y1 - x1*y0;
-				float rSquared = r*r;
-				float dRSquared = dR*dR;
-				float dSquared = d*d;
-				float incidence = r*r * dR*dR - d*d;
-				float sqrtMath = Mathf.Sqrt (rSquared * dRSquared - dSquared);
-				float resultingX1 = 0;
-				float resultingX2 = 0;
-				float resultingY1 = 0;
-				float resultingY2 = 0;
-
-				if (incidence > 0)
-				{
-					resultingX1 = (d * dY + Sgn(dY) * dX * sqrtMath) / (dRSquared);
-					resultingY1 = -(d * dX - Mathf.Abs (dY) * sqrtMath) / (dRSquared);
-					resultingX2 = (d * dY - Sgn(dY) * dX * sqrtMath) / (dRSquared);
-					resultingY2 = -(d * dX + Mathf.Abs (dY) * sqrtMath) / (dRSquared);
-
-					float distance01 = Mathf.Sqrt((resultingX1 - x0) * (resultingX1 - x0) + (resultingY1 - y0) * (resultingY1 - y0));
-					float distance02 = Mathf.Sqrt((resultingX2 - x0) * (resultingX2 - x0) + (resultingY2 - y0) * (resultingY2 - y0));
-
-					bool D1greaterthanD2 = false;
-					if (distance01 > distance02)
-					{
-						D1greaterthanD2 = true;
-						float tempResultX = resultingX1;
-						float tempResultY = resultingY1;
-						resultingX1 = resultingX2;
-						resultingY1 = resultingY2;
-						resultingX2 = tempResultX;
-						resultingY2 = tempResultY;
-					}
-
-					//if x is = both then just check if its in between the ys, same for the other way 'round(because vertical lines wont be greater than start x it will be equal to, but it checks > start and<=end)
-					if (resultingX1 <= x0 + EPSILON && resultingX1 >= x0 - EPSILON && resultingX1 <= x1 + EPSILON && resultingX1 >= x1 - EPSILON)
-					{
-						if (resultingY1 > y0 && resultingY1 <= y1 || resultingY1 >= y1 && resultingY1 < y0)
-						{
-							firstIsOnLineSegment = true;
-						}
-					}
-					if (resultingX2 <= x0 + EPSILON && resultingX2 >= x0 - EPSILON && resultingX2 <= x1 + EPSILON && resultingX2 >= x1 - EPSILON)
-					{
-						if (resultingY2 > y0 && resultingY2 <= y1 || resultingY2 >= y1 && resultingY2 < y0)
-						{
-							secondIsOnLineSegment = true;
-						}
-					}
-					if (resultingY1 <= y0 + EPSILON && resultingY1 >= y0 - EPSILON && resultingY1 <= y1 + EPSILON && resultingY1 >= y1 - EPSILON)
-					{
-						if (resultingX1 > x0 && resultingX1 <= x1 || resultingX1 >= x1 && resultingX1 < x0)
-						{
-							firstIsOnLineSegment = true;
-						}
-					}
-					if (resultingY2 <= y0 + EPSILON && resultingY2 >= y0 - EPSILON && resultingY2 <= y1 + EPSILON && resultingY1 >= y1 - EPSILON)
-					{
-						if (resultingX2 > x0 && resultingX2 <= x1 || resultingX2 >= x1 && resultingX2 < x0)
-						{
-							secondIsOnLineSegment = true;
-						}
-					}
-
-					if (!firstIsOnLineSegment && secondIsOnLineSegment || firstIsOnLineSegment && !secondIsOnLineSegment)
-					{
-						thisHadOneEqualTo = true;
-					}
-
-					//ignore the starts of the linesegments and only use the ends if equal to
-					if ((resultingX1 > x0 && resultingX1 <= x1 && resultingY1 > y0 && resultingY1 <= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 < y0 && resultingY1 >= y1) || (resultingX1 < x0 && resultingX1 >= x1 && resultingY1 > y0 && resultingY1 <= y1) || (resultingX1 > x0 && resultingX1 <= x1 && resultingY1 < y0 && resultingY1 >= y1))
-					{
-						firstIsOnLineSegment = true;
-					}
-					if ((resultingX2 > x0 && resultingX2 <= x1 && resultingY2 > y0 && resultingY2 <= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 < y0 && resultingY2 >= y1) || (resultingX2 < x0 && resultingX2 >= x1 && resultingY2 > y0 && resultingY2 <= y1) || (resultingX2 > x0 && resultingX2 <= x1 && resultingY2 < y0 && resultingY2 >= y1))
-					{
-						secondIsOnLineSegment = true;
-					}
-				}
-				//if two Intersections
-				if (firstIsOnLineSegment && secondIsOnLineSegment)
-				{
-					thisHadOneEqualTo = false;
-					// if Count is even
-					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
-					{
-						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-						firstPassCircleIntersectsCount++;
-						fullMagicListCount++;
-						if (resultingX2 == x1 && resultingY2 == y1)
-						{
-							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-						else
-						{
-							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-					}
-					//if Count is odd
-					else
-					{
-						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);//i
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;						
-						firstPassCircleIntersectsCount++;
-						fullMagicListCount++;
-						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);//i+1
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
-						firstPassCircleIntersectsCount++;
-						fullMagicListCount++;
-					}
-				}
-				// if only first Intersection
-				if (firstIsOnLineSegment && !secondIsOnLineSegment)
-				{
-					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
-					{
-						// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-						firstPassCircleIntersectsCount++;
-						fullMagicListCount++;
-					}
-					else
-					{
-						if (resultingX1 == x1 && resultingY1 == y1)
-						{
-							// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i + 1);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-						else
-						{
-							// = new PointAndIndex(new Vector2(resultingX1 + mousePosition.x, resultingY1 + mousePosition.y), i);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX1 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY1 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-					}
-				}
-				//if only second intersection
-				if (!firstIsOnLineSegment && secondIsOnLineSegment)
-				{
-					if (firstPassCircleIntersectsCount % 2.0 == 0.0)
-					{
-						// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-						firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-						firstPassCircleIntersectsCount++;
-						fullMagicListCount++;
-					}
-					else
-					{
-						if (resultingX2 == x1 && resultingY2 == y1)
-						{
-							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i + 1);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i + 1;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-						else
-						{
-							// = new PointAndIndex(new Vector2(resultingX2 + mousePosition.x, resultingY2 + mousePosition.y), i);
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.x = resultingX2 + mousePosition.x;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].point.y = resultingY2 + mousePosition.y;
-							firstPassCircleIntersects[firstPassCircleIntersectsCount].index = i;
-							firstPassCircleIntersectsCount++;
-							fullMagicListCount++;
-						}
-					}
-				}
-				//in order to ignore the intersect if it doesnt fully cross butt-just lands on an endpoint and then goes back the way it came
-				if (previousHadOneEqualTo && previousStartInsideRadius && ((!firstIsOnLineSegment && secondIsOnLineSegment || firstIsOnLineSegment && !secondIsOnLineSegment) || ((!firstIsOnLineSegment && !secondIsOnLineSegment) && thisEndsInsideRadius)))
-				{
-					firstPassCircleIntersectsCount--;
-				}
-				if (previousHadOneEqualTo && !previousStartInsideRadius && (!firstIsOnLineSegment && !secondIsOnLineSegment) && !thisEndsInsideRadius)
-				{
-					firstPassCircleIntersectsCount--;
-				}
-				previousStartInsideRadius = thisStartsInsideRadius;
-				previousHadOneEqualTo = thisHadOneEqualTo;
-			}
-
-			//had to do 666 thing because below this it cant use unassigned even though it would never go into that loop unless it has already gone through this one
-			PointAndIndex lowestLeftPoint = new PointAndIndex(new Vector2(666,666), 666);
-			PointAndIndex lowestRightPoint = new PointAndIndex(new Vector2(666,666), 666);
-			//if leftExplosionIntersects are odd number above, set lowest Point
-			if (leftExplosionIntersectsCount % 2.0 != 0.0)
-			{
-				lowestLeftPoint = leftExplosionIntersects[0];
-				for (int j = 1; j < leftExplosionIntersectsCount; j++)
-				{
-					if (leftExplosionIntersects[j].point.y < lowestLeftPoint.point.y)
-					{
-						lowestLeftPoint = leftExplosionIntersects[j];
-					}
-				}
-			}
-			//if rightExplosionIntersects are odd number above, set lowest Point
-			if (rightExplosionIntersectsCount % 2.0 != 0.0)
-			{
-				lowestRightPoint = rightExplosionIntersects[0];
-				for (int k = 1; k < rightExplosionIntersectsCount; k++)
-				{
-					if (rightExplosionIntersects[k].point.y < lowestRightPoint.point.y)
-					{
-						lowestRightPoint = rightExplosionIntersects[k];
-					}
-				}
-			}			
-
-			//if circleIntersects gets odd number of intersects you are going to want to ignore the shot
-			//it's sad, i know, but it's basically perfect except when you click the same spot a bunch of times so fuck you
-			//may want to eventually gowith left andrightbreak if !=666, miunno
-			if (firstPassCircleIntersectsCount % 2 !=0.0)
-			{
-				Debug.Log ("ODD # of circleIntersectssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
-				//previousPoints.Clear ();
-				firstPassCircleIntersectsCount = 0;
-				//fullMagicList.Clear ();
-				newBreakListCount = 0;
-				leftExplosionIntersectsCount = 0;
-				rightExplosionIntersectsCount = 0;
-				for (int i = 0; i < fullMagicListCount; i++)
-				{
-					fullMagicListCountArray[i] = 0;
-				}
-				fullMagicListCount = 0;
-				return;
-			}			
-
-
-			//if circle is completely in between two indexes on points
-			if (lowestRightPoint.index != 666 && lowestLeftPoint.index !=666 && lowestRightPoint.index < lowestLeftPoint.index)
-			{
-				newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
-				newBreakListCount++;
-				//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-				deletePoints (newBreakList, mousePosition, newBreakListCount);
-				//fullMagicList.Clear ();
-				firstPassCircleIntersectsCount = 0;
-				newBreakListCount = 0;
-				leftExplosionIntersectsCount = 0;
-				rightExplosionIntersectsCount = 0;				
-				for (int i = 0; i < fullMagicListCount; i++)
-				{
-					fullMagicListCountArray[i] = 0;
-				}
-				fullMagicListCount = 0;
-				return;
-			}
-
-			//if no circleIntersects then it's an easy break and quit
-			if (firstPassCircleIntersectsCount == 0)
-			{
-				if (leftExplosionIntersectsCount % 2.0 == 0.0 && rightExplosionIntersectsCount % 2.0 == 0.0)
-				{
-					//fullMagicList.Clear ();
-					firstPassCircleIntersectsCount = 0;			
-					newBreakListCount = 0;
-					leftExplosionIntersectsCount = 0;
-					rightExplosionIntersectsCount = 0;
-					for (int i = 0; i < fullMagicListCount; i++)
-					{
-						fullMagicListCountArray[i] = 0;
-					}
-					fullMagicListCount = 0;
-					return;
-				}
-				else
-				{
-					newBreakList[newBreakListCount] = new BreakObject(lowestLeftPoint, lowestRightPoint);
-					newBreakListCount++;
-					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-					deletePoints (newBreakList, mousePosition, newBreakListCount);
-					//fullMagicList.Clear ();
-					firstPassCircleIntersectsCount = 0;			
-					newBreakListCount = 0;
-					leftExplosionIntersectsCount = 0;
-					rightExplosionIntersectsCount = 0;
-					for (int i = 0; i < fullMagicListCount; i++)
-					{
-						fullMagicListCountArray[i] = 0;
-					}
-					fullMagicListCount = 0;
-					return;
-				}
-			}
-//			Debug.Log (firstPassCircleIntersectsCount + "COUNT");
-//			//for debug purposes: turns on circle intersect debug information
-//			for (int l = 0; l < firstPassCircleIntersectsCount; l++)
-//			{
-//				//Debug.Log("circleI x" + firstPassCircleIntersects[l].point.x + " y" + firstPassCircleIntersects[l].point.y + " index" + firstPassCircleIntersects[l]);
-//				GameObject PooChain11 = (GameObject)Instantiate(PooChainClone, new Vector3(firstPassCircleIntersects[l].point.x, firstPassCircleIntersects[l].point.y, -9.0f),Quaternion.identity);
-//				PooChain11.renderer.material.color = Color.Lerp (Color.green, Color.red, 1.0f);
-//				PooChain11.transform.localScale += new Vector3(1.0f,1.0f,1.0f);
-//			}
-
-			//second pass through Points, finding "magic" points
-//			//might want to only use magic points if its the top half of the circle thats intersected, the way it is now is if any
-//			//circle intersection has a magic point, might be able to cut performance but it works fine
-			for (int m = 0; m < points.Count - 1; m++)
-			{
-				for (int n = 0; n < firstPassCircleIntersectsCount; n++)//could be fullMagicList.Count
-				{
-					//fixes it so it wont try to put a magic point at bottom left or bottom right index
-					if (firstPassCircleIntersects[n].index == 0 || firstPassCircleIntersects[n].index == points.Count - 1)
-					{
-						continue;
-					}
-					//ignoring starts of line segments
-					if ((points[m].x <= firstPassCircleIntersects[n].point.x && points[m + 1].x > firstPassCircleIntersects[n].point.x) || (points[m].x > firstPassCircleIntersects[n].point.x && points[m + 1].x <= firstPassCircleIntersects[n].point.x))
-					{
-						float intersectX = firstPassCircleIntersects[n].point.x;
-						float intersectY = ((firstPassCircleIntersects[n].point.x - points[m].x) / (points[m + 1].x - points[m].x)) * (points[m + 1].y - points[m].y) + points[m].y;
-						if (intersectY > firstPassCircleIntersects[n].point.y + .1f) //.01f needs to be epsilon maybe
-						{
-							fullMagicList[n,fullMagicListCountArray[n]] = (new PointAndIndex(new Vector2(intersectX, intersectY), m + 1));
-							fullMagicListCountArray[n]++;
-						}
-					}
-				}
-			}
-
-			//go through fullMagicList to see if there are any odd Counts and if so, determine the lowest Y value to use as
-			//the magic value, then break every magic number to the number it was determined from
-
-			//have to assign it or it wont work, ask zeb bout better waytadodis
-			PointAndIndex magicFoundFromThisPoint = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
-
-			for (int o = 0; o < firstPassCircleIntersectsCount; o++)//could use fullMagic.Count
-			{	//if odd Count
-				if (fullMagicListCountArray[o] % 2.0 != 0.0)
-				{
-					PointAndIndex lowestCircleIntersect = fullMagicList[o,0];
-
-					for (int i = 0; i < fullMagicListCountArray[o]; i++)
-					{
-						if (fullMagicList[o,i].point.y < lowestCircleIntersect.point.y)
-						{
-							lowestCircleIntersect = fullMagicList[o,i];
-						}
-					}
-
-					magicFoundFromThisPoint = firstPassCircleIntersects[o];
-
-					if (lowestCircleIntersect.index > magicFoundFromThisPoint.index)
-					{
-						newBreakList[newBreakListCount] = new BreakObject(magicFoundFromThisPoint, lowestCircleIntersect);
-						newBreakListCount++;
-						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-					}
-					else
-					{
-						newBreakList[newBreakListCount] = new BreakObject(lowestCircleIntersect, magicFoundFromThisPoint);
-						newBreakListCount++;
-						//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-					}				
-				}
-			}
-			//for enter and exit angle determination
-			Vector2 firstEnter = new Vector2(firstPassCircleIntersects[0].point.x - mousePosition.x, firstPassCircleIntersects[0].point.y - mousePosition.y);
-			float lastExitX = firstPassCircleIntersects[firstPassCircleIntersectsCount - 1].point.x - mousePosition.x;
-			float lastExitY = firstPassCircleIntersects[firstPassCircleIntersectsCount - 1].point.y - mousePosition.y;
-			Vector2 fromVector2 = firstEnter;
-			Vector2 toVector2 = new Vector2(lastExitX, lastExitY);			
-			float firstEnterToLastExitAngle = Vector2.Angle(fromVector2, toVector2);
-			Vector3 cross = Vector3.Cross(fromVector2, toVector2);
-
-			//cross.z>0 would be for clockwise angle?
-			if (cross.z < 0)
-			{
-			    firstEnterToLastExitAngle = 360 - firstEnterToLastExitAngle;
-			}
-
-			//have to assign it or it wont work, ask zeb bout better waytadodis
-			PointAndIndex startBreak = new PointAndIndex(new Vector2(0.0f, 0.0f), 1);
-
-			bool lowestRightPointUsed = false;
-			bool lowestLeftPointUsed = false;
-			bool startBreakIsLeftPoint = false;
-
-//			//it appears that i could combine this loop with the fullMagicList one above
-			for (int s = 0; s < firstPassCircleIntersectsCount; s = s + 1)
-			{
-				Vector2 currentExitVector2 = (firstPassCircleIntersects[s].point - mousePosition);
-				float firstEnterToCurrentExitAngle = Vector2.Angle(firstEnter, currentExitVector2);
-				Vector3 cross1 = Vector3.Cross(firstEnter, currentExitVector2);
-				if (cross1.z < 0)
-				{
-					firstEnterToCurrentExitAngle = 360 - firstEnterToCurrentExitAngle;
-				}
-				//if final pass through loop and lowestRight has not been used and does exist
-				if (s == firstPassCircleIntersectsCount - 1 && !lowestRightPointUsed && lowestRightPoint.index != 666)
-				{
-					newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
-					newBreakListCount++;
-					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-					continue;
-				}
-				//if final pass through loop and lowestRight has been used or does not exist
-				if (s == firstPassCircleIntersectsCount - 1 && (lowestRightPointUsed || lowestRightPoint.index == 666))
-				{
-					newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
-					newBreakListCount++;
-					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-					continue;
-				}
-				//if first pass through loop, sets start break
-				if (s == 0)
-				{
-					if (leftExplosionIntersectsCount % 2.0 != 0.0 && lowestLeftPoint.index <= firstPassCircleIntersects[0].index)//firstpasscircleintersects.count > 0
-					{						
-						startBreak = lowestLeftPoint;
-						lowestLeftPointUsed = true;
-						startBreakIsLeftPoint = true;
-						continue;
-					}
-					else
-					{
-						startBreak = firstPassCircleIntersects[0];
-						continue;
-					}
-				}
-				//if accesing an exitCircle and is CounterClockwise(but not last exit circle because it would go into other if statement above)
-				//if there is a problem with weird terrain after an explosion, this is the cause, probably just want to completely rethink this whole section, also recently changed MagicPoitnsto Array instead of arrayLIst, but i went back in time and saw thtat it was having the problem before that but i figured i would just mention it
-				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle < firstEnterToLastExitAngle)
-				{
-					if (!lowestRightPointUsed && lowestRightPoint.index != 666 && firstPassCircleIntersects[s + 1].index > lowestRightPoint.index && firstPassCircleIntersects[s + 1].index < firstPassCircleIntersects[s + 2].index)
-					{
-						newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
-						newBreakListCount++;
-						lowestRightPointUsed = true;
-						Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-						if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
-						{
-							Debug.Log ("should never happen?================lowestLeft = startBreak but not first break");//maybe?
-							startBreak = lowestLeftPoint;
-							lowestLeftPointUsed = true;
-						}
-						else
-						{
-							startBreak = firstPassCircleIntersects[s + 1];
-						}
-						s++;
-						continue;
-					}
-					else
-					{
-						//might need to put OR statement in its own if statement it appears to work, for now, need more thinking
-						if ((startBreakIsLeftPoint == true) || (!lowestRightPointUsed && lowestRightPoint.index != 666))
-						{
-							if (points[firstPassCircleIntersects[s].index + 1].y < mousePosition.y)
-							{
-								newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
-								newBreakListCount++;
-								Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-								startBreak = firstPassCircleIntersects[s + 1];
-								startBreakIsLeftPoint = false;
-								s++;
-								continue;
-							}
-							else 
-							{
-								s++;
-								continue;
-							}
-						}
-						newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
-						newBreakListCount++;
-						if (!lowestLeftPointUsed && lowestLeftPoint.index != 666 && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
-						{
-							Debug.Log ("used my kewl tricks");
-							startBreak = lowestLeftPoint;
-							lowestLeftPointUsed = true;
-						}
-						else
-						{
-							startBreak = firstPassCircleIntersects[s + 1];
-						}
-						Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
-						s++;
-						continue;
-					}
-				}
-				//if accessing an exitCircle and is !CounterClockwise
-				if (s % 2 != 0.0 && firstEnterToCurrentExitAngle > firstEnterToLastExitAngle)
-				{
-					s++;
-					continue;
-				}
-				//if accessing an enterCircle and is not first pass through loop
-				//i dont think this ever happens, it would be an exit circle since start circle would
-				//have been added earlier and then s++ to skip to exit
-				if (s % 2 == 0.0 && s != 0)
-				{
-					Debug.Log ("jew===========================------------===============================");
-				}
-			}
-			
-			for (int i = 0; i < points.Count; i++)
-			{	
-				previousPoints.Add (points[i]);
-			}
-			
-			deletePoints (newBreakList, mousePosition, newBreakListCount);
-			previousPoints.Clear ();
-			firstPassCircleIntersectsCount = 0;
-			//fullMagicList.Clear ();
-			newBreakListCount = 0;
-			leftExplosionIntersectsCount = 0;
-			rightExplosionIntersectsCount = 0;
-			for (int i = 0; i < fullMagicListCount; i++)
-			{
-				fullMagicListCountArray[i] = 0;
-			}
-			fullMagicListCount = 0;
-		}
 	}
 
 
