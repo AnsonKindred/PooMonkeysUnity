@@ -20,6 +20,11 @@ function Update () {
 
 function FixedUpdate () {
 	
+	if (Mirv == null)
+	{
+		Destroy(this.gameObject);
+	}
+	
 	if (counter == 0) {
 		Mirv = Instantiate(MirvClone, spawnPosition, Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(MonkeyController.angle), Mathf.PI / 2),Vector3.up));
 		Mirv.rigidbody.AddForce(Mathf.Cos(MonkeyController.angle) * MonkeyController.power, Mathf.Sin(MonkeyController.angle) * MonkeyController.power, 0.0);

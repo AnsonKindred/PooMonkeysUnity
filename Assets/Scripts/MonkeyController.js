@@ -25,6 +25,9 @@ var PooChainSpawnerPrefab: GameObject;
 var DrillerSpawnerPrefab: GameObject;
 var IceCuboidSpawnerPrefab: GameObject;
 
+var canMirv: boolean = true;
+var canChain: boolean = true;
+
 class MonkeyControllerMovement {
 	// The speed when running 
 	var runSpeed = 7.0;
@@ -329,17 +332,31 @@ function FixedUpdate() {
 
 	FlingPoo();
 }
+function TwoSeconds()
+{	
+	yield WaitForSeconds(2.0);
+	canMirv = true;
+}
+function FiveSeconds()
+{
+	yield WaitForSeconds(5.0);
+	canChain = true;
+}
 
 //might want to make the transition to FixedUpdate()
 function Update () {
 	// Make sure we are always in the 2D plane.
 	transform.position.z = 0.0;
 if (networkView.isMine) {
-	if (Input.GetKeyDown ("1")) {
+	if (Input.GetKeyDown ("1") && canMirv) {
 		fire1 = true;
+		canMirv = false;		
+		TwoSeconds();
 	}
-	if (Input.GetKeyDown ("2")) {
+	if (Input.GetKeyDown ("2") && canChain) {
 		fire2 = true;
+		canChain = false;
+		FiveSeconds();
 	}
 	if (Input.GetKeyDown ("3")) {
 		fire3 = true;
@@ -478,18 +495,24 @@ function FlingPoo ()
 	
 	if (fire2) {
 	var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
     fire2 = false;
 	}
 	
 	if (fire1) {
     //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
     var MirvClone = Network.Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation, 0);
-    MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
+    //MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
     //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
-    fire1 = false;
+    fire1 = false;    
     }
 }
 
+function OnTriggerEnter(other: Collider) 
+	{
+		Destroy(this.gameObject);
+		Destroy(other.gameObject);
+    }
 
 // Various helper functions below:
 function GetSpeed () {

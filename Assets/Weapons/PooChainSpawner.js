@@ -17,6 +17,11 @@ function Update () {
 }
 
 function FixedUpdate () {
+	if (PooChainLinkClone == null)// || PooChainClonePrevious == null)
+	{
+		Destroy(this.gameObject);
+	}
+
 	if (counter == 0) {
 		var PooChainCloneHead = Instantiate(PooChainLinkClone, spawnPosition, Quaternion.LookRotation(Vector3(Mathf.Cos(MonkeyController.angle - Mathf.PI/2),Mathf.Sin(MonkeyController.angle - Mathf.PI/2),0.0),Vector3.right));
 		PooChainCloneHead.rigidbody.AddForce(Mathf.Cos(MonkeyController.angle) * MonkeyController.power, Mathf.Sin(MonkeyController.angle) * MonkeyController.power, 0.0);
@@ -24,7 +29,7 @@ function FixedUpdate () {
 		counter++;
 	}
 	var dist = Vector3.Distance(PooChainClonePrevious.gameObject.rigidbody.transform.position, spawnPosition);
-	if (counter > 0 && counter < 50 && dist > PooChainClonePrevious.gameObject.rigidbody.transform.localScale.y * 2) {
+	if (counter > 0 && counter < 10 && dist > PooChainClonePrevious.gameObject.rigidbody.transform.localScale.y * 2) {
 
 		var PooChainClone = Instantiate(PooChainLinkClone, spawnPosition, Quaternion.LookRotation(Vector3(Mathf.Cos(MonkeyController.angle - Mathf.PI/2),Mathf.Sin(MonkeyController.angle - Mathf.PI/2),0.0),Vector3.right));
 		PooChainClone.rigidbody.AddForce(Mathf.Cos(MonkeyController.angle) * MonkeyController.power * (1 + counter/10) , Mathf.Sin(MonkeyController.angle) * MonkeyController.power * (1 + counter / 10), 0.0);	
