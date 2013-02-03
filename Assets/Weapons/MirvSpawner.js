@@ -20,10 +20,7 @@ function Update () {
 
 function FixedUpdate () {
 	
-	if (Mirv == null)
-	{
-		Destroy(this.gameObject);
-	}
+
 	
 	if (counter == 0) {
 		Mirv = Instantiate(MirvClone, spawnPosition, Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(MonkeyController.angle), Mathf.PI / 2),Vector3.up));
@@ -36,8 +33,19 @@ function FixedUpdate () {
 		var MirvBaby1 = Instantiate(MirvClone, Mirv.rigidbody.position + Vector3(-1.0,0.0,0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(MonkeyController.angle), Mathf.PI / 2),Vector3.up));
 		counter++;
 	}
+		if (MirvBaby == null && MirvBaby1 == null && Mirv == null)
+	{
+		Destroy(this.gameObject);
+	}
 }
 
 function SecondsToNumberOfFixedUpdates () {
 	
 }
+
+	function OnTriggerEnter(other: Collider) 
+	{
+//		Explode(other.transform.position);
+		//Destroy(other.gameObject);
+		Debug.Log("yep");
+    }

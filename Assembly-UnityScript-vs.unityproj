@@ -73,6 +73,7 @@
      <Compile Include="Assets\Weapons\Driller.js" />
      <Compile Include="Assets\Weapons\DrillerSpawner.js" />
      <Compile Include="Assets\Weapons\IceCuboidSpawner.js" />
+     <Compile Include="Assets\Weapons\Mirv.js" />
      <Compile Include="Assets\Weapons\MirvSpawner.js" />
      <Compile Include="Assets\Weapons\PooChainSpawner.js" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\CameraMotionBlurDX11.shader" />

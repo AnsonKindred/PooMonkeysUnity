@@ -20,7 +20,7 @@ var fire4: boolean;
 static var angle: float;
 static var power: float;
 
-var MirvSpawnerPrefab: GameObject;
+var MirvClone: GameObject;
 var PooChainSpawnerPrefab: GameObject;
 var DrillerSpawnerPrefab: GameObject;
 var IceCuboidSpawnerPrefab: GameObject;
@@ -458,7 +458,7 @@ function OnControllerColliderHit (hit : ControllerColliderHit)
 
 function FlingPoo ()
 {
-	Debug.Log("power " + power);
+	
 	var a = Input.GetAxisRaw ("Angle");
 	var p = Input.GetAxisRaw ("Power");
 
@@ -470,6 +470,7 @@ function FlingPoo ()
 	}
 	if (p > 0) {
 		power++;
+		Debug.Log("power " + power);
 	}
 	if (p < 0) {
 		power--;
@@ -495,20 +496,23 @@ function FlingPoo ()
 	
 	if (fire2) {
 	var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
     fire2 = false;
+    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
+    //fire2 = false;
 	}
 	
 	if (fire1) {
     //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    var MirvClone = Network.Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation, 0);
+    var Mirv = Network.Instantiate(MirvClone, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(angle), Mathf.PI / 2),Vector3.up),0);
+    Mirv.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
+    fire1 = false;
     //MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
     //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
-    fire1 = false;    
+    fire1 = false;
     }
 }
 
-function OnTriggerEnter(other: Collider) 
+function OnTriggerEnter(other: Collider)
 	{
 		Destroy(this.gameObject);
 		Destroy(other.gameObject);
