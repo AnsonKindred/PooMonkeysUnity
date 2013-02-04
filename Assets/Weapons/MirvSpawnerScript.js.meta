@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: 574d22fb0186d3e4db15c6ab8e8841bb
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - MirvClone: {fileID: 100000, guid: 98b39b4840e08344bb2241c750aa4cb1, type: 2}
+  - MirvBabyClone: {fileID: 100000, guid: 1da335b87eac0244fa29dcbb3f19e804, type: 2}
+  - Mirv: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 

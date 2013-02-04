@@ -20,16 +20,22 @@ var fire4: boolean;
 static var angle: float;
 static var power: float;
 
-var MirvClone: GameObject;
-var PooChainSpawnerPrefab: GameObject;
+//var MirvClone: GameObject;
+//var PooChainSpawnerPrefab: GameObject;
 var DrillerSpawnerPrefab: GameObject;
 var IceCuboidSpawnerPrefab: GameObject;
 
 var canMirv: boolean = true;
 var canChain: boolean = true;
 
+var MirvSpawner: GameObject;
+var MirvScript : MirvSpawnerScript = MirvSpawner.GetComponent(MirvSpawnerScript);
+
+var PooChainSpawner: GameObject;
+var PCScript : PooChainSpawnerScript = PooChainSpawner.GetComponent(PooChainSpawnerScript);
+
 class MonkeyControllerMovement {
-	// The speed when running 
+	// The speed when running
 	var runSpeed = 7.0;
 
 	// The speed when sliding up and around corners 
@@ -328,8 +334,8 @@ function DidJump () {
 }
 
 //does jumping and hitting your head make you zero y velocity???
-function FixedUpdate() {
-
+function FixedUpdate() 
+{
 	FlingPoo();
 }
 function TwoSeconds()
@@ -347,100 +353,102 @@ function FiveSeconds()
 function Update () {
 	// Make sure we are always in the 2D plane.
 	transform.position.z = 0.0;
-if (networkView.isMine) {
-	if (Input.GetKeyDown ("1") && canMirv) {
-		fire1 = true;
-		canMirv = false;		
-		TwoSeconds();
-	}
-	if (Input.GetKeyDown ("2") && canChain) {
-		fire2 = true;
-		canChain = false;
-		FiveSeconds();
-	}
-	if (Input.GetKeyDown ("3")) {
-		fire3 = true;
-	}
-	if (Input.GetKeyDown ("4")) {
-		fire4 = true;
-	}
-
-	UpdateSmoothedMovementDirection();
-	
-	AnimateCharacter();
-
-	// Apply gravity
-	// - extra power jump modifies gravity
-	ApplyGravity ();
-
-	// Apply jumping logic
-	ApplyJumping ();
-	
-	var platformMovementOffset = Vector3.zero;
-	
-	// Moving platform support
-	if (activePlatform != null && !jump.jumping) {
-		var newGlobalPlatformPoint = activePlatform.TransformPoint(activeLocalPlatformPoint);
-		var moveDistance = (newGlobalPlatformPoint - activeGlobalPlatformPoint);
-		// Setting transform.position directly causes us to go through walls if we're on a rotating block.
-		// But it's necessary to make moving platforms work.
-		if(activePlatform.rigidbody.isKinematic && activePlatform.rigidbody.velocity.sqrMagnitude > 0.0){
-			// Moving platform. Change the position directly so the character
-			// won't fall through the platform.
-			transform.position = transform.position + moveDistance;
-		}else{
-			// Store the desired movement for use in CharacterController.Move.
-			platformMovementOffset = moveDistance;
+	if (networkView.isMine) 
+	{
+		if (Input.GetKeyDown ("1") && canMirv) {
+			fire1 = true;
+			canMirv = false;		
+			TwoSeconds();
 		}
-		lastPlatformVelocity = (newGlobalPlatformPoint - activeGlobalPlatformPoint) / Time.smoothDeltaTime;
-	} else {
-		lastPlatformVelocity = Vector3.zero;	
-	}
+		if (Input.GetKeyDown ("2") && canChain) {
+			fire2 = true;
+			canChain = false;
+			FiveSeconds();
+		}
+		if (Input.GetKeyDown ("3")) {
+			fire3 = true;
+		}
+		if (Input.GetKeyDown ("4")) {
+			fire4 = true;
+		}
 	
-	activePlatform = null;
+		UpdateSmoothedMovementDirection();
+		
+		AnimateCharacter();
 	
-	// Save lastPosition for velocity calculation.
-	var lastPosition = transform.position;
+		// Apply gravity
+		// - extra power jump modifies gravity
+		ApplyGravity ();
 	
-	// Calculate actual motion
-	var currentMovementOffset = (movement.direction * movement.speed) + Vector3 (0.0, movement.verticalSpeed, 0.0);
+		// Apply jumping logic
+		ApplyJumping ();
+		
+		var platformMovementOffset = Vector3.zero;
+		
+		// Moving platform support
+		if (activePlatform != null && !jump.jumping) {
+			var newGlobalPlatformPoint = activePlatform.TransformPoint(activeLocalPlatformPoint);
+			var moveDistance = (newGlobalPlatformPoint - activeGlobalPlatformPoint);
+			// Setting transform.position directly causes us to go through walls if we're on a rotating block.
+			// But it's necessary to make moving platforms work.
+			if(activePlatform.rigidbody.isKinematic && activePlatform.rigidbody.velocity.sqrMagnitude > 0.0){
+				// Moving platform. Change the position directly so the character
+				// won't fall through the platform.
+				transform.position = transform.position + moveDistance;
+			}else{
+				// Store the desired movement for use in CharacterController.Move.
+				platformMovementOffset = moveDistance;
+			}
+			lastPlatformVelocity = (newGlobalPlatformPoint - activeGlobalPlatformPoint) / Time.smoothDeltaTime;
+		} else {
+			lastPlatformVelocity = Vector3.zero;	
+		}
+		
+		activePlatform = null;
+		
+		// Save lastPosition for velocity calculation.
+		var lastPosition = transform.position;
+		
+		// Calculate actual motion
+		var currentMovementOffset = (movement.direction * movement.speed) + Vector3 (0.0, movement.verticalSpeed, 0.0);
+		
+		// We always want the movement to be framerate independent.  Multiplying by Time.smoothDeltaTime does this.
+		currentMovementOffset *= Time.smoothDeltaTime;
+		currentMovementOffset += platformMovementOffset;
+		currentMovementOffset.x += movement.slideX * movement.slideAroundEdgesSpeedFactor;
+		// Reset sliding to zero. It will be set in controller.Move
+		movement.slideX = 0.0;
+		
+	   	// Move our character!
+	   	// We can get null refs here
+	   	movement.collisionFlags = controller.Move (currentMovementOffset);
+		
+		// Calculate the velocity based on the current and previous position.  
+		// This means our velocity will only be the amount the character actually moved as a result of collisions.
+		movement.velocity = (transform.position - lastPosition) / Time.smoothDeltaTime;
+		
+		// Moving platforms support
+		if (activePlatform != null) {
+			activeGlobalPlatformPoint = transform.position;
+			activeLocalPlatformPoint = activePlatform.InverseTransformPoint (transform.position);
+		}
 	
-	// We always want the movement to be framerate independent.  Multiplying by Time.smoothDeltaTime does this.
-	currentMovementOffset *= Time.smoothDeltaTime;
-	currentMovementOffset += platformMovementOffset;
-	currentMovementOffset.x += movement.slideX * movement.slideAroundEdgesSpeedFactor;
-	// Reset sliding to zero. It will be set in controller.Move
-	movement.slideX = 0.0;
+		// We are in jump mode but just became grounded
+		if (controller.isGrounded) {
+			if (jump.jumping) {
+				jump.jumping = false;
+				SendMessage ("DidLand", SendMessageOptions.DontRequireReceiver);
 	
-   	// Move our character!
-   	// We can get null refs here
-   	movement.collisionFlags = controller.Move (currentMovementOffset);
-	
-	// Calculate the velocity based on the current and previous position.  
-	// This means our velocity will only be the amount the character actually moved as a result of collisions.
-	movement.velocity = (transform.position - lastPosition) / Time.smoothDeltaTime;
-	
-	// Moving platforms support
-	if (activePlatform != null) {
-		activeGlobalPlatformPoint = transform.position;
-		activeLocalPlatformPoint = activePlatform.InverseTransformPoint (transform.position);
-	}
-
-	// We are in jump mode but just became grounded
-	if (controller.isGrounded) {
-		if (jump.jumping) {
-			jump.jumping = false;
-			SendMessage ("DidLand", SendMessageOptions.DontRequireReceiver);
-
-			var jumpMoveDirection = movement.direction * movement.speed;
-			if (jumpMoveDirection.sqrMagnitude > 0.01)
-				movement.direction = jumpMoveDirection.normalized;
+				var jumpMoveDirection = movement.direction * movement.speed;
+				if (jumpMoveDirection.sqrMagnitude > 0.01)
+					movement.direction = jumpMoveDirection.normalized;
+			}
 		}
 	}
-}
-else {
-	enabled = false;
-}
+	else 
+	{
+		enabled = false;
+	}
 }
 
 function OnControllerColliderHit (hit : ControllerColliderHit)
@@ -457,8 +465,7 @@ function OnControllerColliderHit (hit : ControllerColliderHit)
 }
 
 function FlingPoo ()
-{
-	
+{	
 	var a = Input.GetAxisRaw ("Angle");
 	var p = Input.GetAxisRaw ("Power");
 
@@ -484,31 +491,37 @@ function FlingPoo ()
 	
 	//Debug.Log("power" + power);
 	//Debug.Log("angle" + angle);
-	if (fire4) {
-	var IceCuboidSpawnerClone = Instantiate(IceCuboidSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    fire4 = false;
+	if (fire4) 
+	{
+		var IceCuboidSpawnerClone = Instantiate(IceCuboidSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+	    fire4 = false;
 	}
 	
-	if (fire3) {
-	var DrillerClone = Instantiate(DrillerSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    fire3 = false;
+	if (fire3) 
+	{
+		var DrillerClone = Instantiate(DrillerSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+	    fire3 = false;
 	}
 	
-	if (fire2) {
-	var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    fire2 = false;
-    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
-    //fire2 = false;
+	if (fire2) 
+	{
+		//var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+	    PCScript.Fire(transform.position, angle, power);
+	    fire2 = false;
+	    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
+	    //fire2 = false;
 	}
 	
-	if (fire1) {
-    //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-    var Mirv = Network.Instantiate(MirvClone, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(angle), Mathf.PI / 2),Vector3.up),0);
-    Mirv.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
-    fire1 = false;
-    //MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
-    //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
-    fire1 = false;
+	if (fire1) 
+	{
+	    //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+	    //var Mirv = Network.Instantiate(MirvClone, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(angle), Mathf.PI / 2),Vector3.up),0);
+//	    Mirv.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
+	    MirvScript.Fire(transform.position, angle, power);
+	    fire1 = false;
+	    //MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
+	    //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
+	    //fire1 = false;
     }
 }
 
