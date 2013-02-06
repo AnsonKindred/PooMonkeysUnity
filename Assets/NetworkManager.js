@@ -11,6 +11,8 @@ private var buttonY: float;
 private var buttonWidth: float;
 private var buttonHeight: float;
 
+var camScrolling : CameraScrolling;
+
 function Start() {
 	buttonX = Screen.width * .02;
 	buttonY = Screen.width * .03;
@@ -29,17 +31,18 @@ function refreshHostList() {
 }
 
 function spawnPlayer() {
-	Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
+	var spawnedPlayer = Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
+	return spawnedPlayer.transform;
 }
 
 function OnServerInitialized() {
 	Debug.Log("Server Initialized");
-	spawnPlayer();
+	camScrolling.SetTarget(spawnPlayer());
 }
 
 function OnConnectedToServer() 
 {
-	spawnPlayer();
+	camScrolling.SetTarget(spawnPlayer());
 }
 
 
