@@ -572,3 +572,4 @@ function SetControllable (controllable : boolean) {
 // Require a character controller to be attached to the same game object
 @script RequireComponent (CharacterController)
 @script AddComponentMenu ("2D Platformer/Monkey Controller")
+

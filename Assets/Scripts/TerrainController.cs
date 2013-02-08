@@ -743,16 +743,20 @@ public class TerrainController : MonoBehaviour
 	[RPC]
 	void SendTerrain(float pointX, int placement, float pointY, int pointsCount)
 	{
-		Vector2 pizoint = new Vector2 (pointX , pointY);
-		Debug.Log("yoyoy");
-		points[placement] = pizoint;
-		if (placement == pointsCount - 1 && pointsCount < points.Count)
+		if (placement == 0)
 		{
-			points.RemoveRange(pointsCount - 1, (points.Count - 1) - (pointsCount - 1));
+			points.Clear();
 		}
-		if (placement >= points.Count)
+		Vector2 pizoint = new Vector2 (pointX, pointY);
+		//Debug.Log("yoyoy");
+		points.Add (pizoint);
+//		if (placement == pointsCount - 1 && pointsCount < points.Count)
+//		{
+//			points.RemoveRange(pointsCount - 1, (points.Count - 1) - (pointsCount - 1));
+//		}
+		if (placement == points.Count - 1)
 		{
-			points.Add (pizoint);
+			buildTerrainMesh();
 		}
 	}
 	
