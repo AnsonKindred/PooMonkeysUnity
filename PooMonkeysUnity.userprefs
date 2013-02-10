@@ -1,16 +1,14 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\TerrainController.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\MonkeyController.js">
     <Files>
+      <File FileName="Assets\Scripts\TerrainController.cs" Line="1" Column="1" />
       <File FileName="Assets\Weapons\MirvSpawnerScript.js" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\MonkeyController.js" Line="558" Column="2" />
-      <File FileName="Assets\Scripts\TerrainController.cs" Line="753" Column="5" />
-      <File FileName="Assets\Scripts\Vector.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\CameraTarget.js" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\CameraScrolling.js" Line="87" Column="27" />
-      <File FileName="Assets\Weapons\Driller.js" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\MonkeyController.js" Line="576" Column="28" />
       <File FileName="Assets\Weapons\Mirv.js" Line="1" Column="1" />
       <File FileName="Assets\Weapons\PooChainSpawnerScript.js" Line="1" Column="1" />
+      <File FileName="Assets\NetworkManager.js" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\CameraScrolling.js" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

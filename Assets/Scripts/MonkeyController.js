@@ -20,19 +20,27 @@ var fire4: boolean;
 static var angle: float;
 static var power: float;
 
-//var MirvClone: GameObject;
+var MirvClone: GameObject;
 //var PooChainSpawnerPrefab: GameObject;
 var DrillerSpawnerPrefab: GameObject;
 var IceCuboidSpawnerPrefab: GameObject;
 
+static var PooChainClonePrevious: GameObject;
+var PooChainLinkClone: GameObject;
+static var PooChainCloneHead: GameObject;
+static var counter69: int = 0;
+static var spawnPosition: Vector3;
+static var angle1: float;
+static var power1: float;
+
 var canMirv: boolean = true;
 var canChain: boolean = true;
 
-var MirvSpawner: GameObject;
-var MirvScript : MirvSpawnerScript = MirvSpawner.GetComponent(MirvSpawnerScript);
+//var MirvSpawner: GameObject;
+//var MirvScript : MirvSpawnerScript = MirvSpawner.GetComponent(MirvSpawnerScript);
 
-var PooChainSpawner: GameObject;
-var PCScript : PooChainSpawnerScript = PooChainSpawner.GetComponent(PooChainSpawnerScript);
+//var PooChainSpawner: GameObject;
+//var PCScript : PooChainSpawnerScript = PooChainSpawner.GetComponent(PooChainSpawnerScript);
 
 class MonkeyControllerMovement {
 	// The speed when running
@@ -336,6 +344,31 @@ function DidJump () {
 //does jumping and hitting your head make you zero y velocity???
 function FixedUpdate() 
 {
+	Debug.Log("counter69 " + counter69);
+	//if (PooChainClonePrevious != null)
+	if (counter69 > 0)
+	{
+		var dist = Vector3.Distance(PooChainClonePrevious.gameObject.rigidbody.transform.position, spawnPosition);
+		if (counter69 < 10 && dist > PooChainClonePrevious.gameObject.rigidbody.transform.localScale.y * 7) {
+	
+			var PooChainClone = Instantiate(PooChainLinkClone, spawnPosition + new Vector3(0.0f,2.0f,0.0f), Quaternion.LookRotation(Vector3(Mathf.Cos(angle1 - Mathf.PI/2),Mathf.Sin(angle1 - Mathf.PI/2),0.0),Vector3.right));
+			PooChainClone.rigidbody.AddForce(Mathf.Cos(angle1) * power1 * (1 + counter69/10) , Mathf.Sin(angle1) * power1 * (1 + counter69 / 10), 0.0);	
+			PooChainClone.gameObject.AddComponent("HingeJoint");
+			PooChainClone.hingeJoint.breakForce = 1;
+			var normalizedVector: Vector3 = Vector3 (Mathf.Cos(angle1), Mathf.Sin(angle1), 0.0);
+			normalizedVector.Normalize();
+			PooChainClone.hingeJoint.anchor =  Vector3(0.0,dist,0.0);
+			PooChainClone.hingeJoint.axis = Vector3 (1, 0, 0);
+			PooChainClone.hingeJoint.connectedBody = PooChainClonePrevious.GetComponent(Rigidbody);
+			PooChainClonePrevious = PooChainClone;
+			counter69++;
+		}
+		if (counter69 == 10)
+		{
+			counter69 = 0;
+			//PooChainClonePrevious == null;
+		}
+	}
 	FlingPoo();
 }
 function TwoSeconds()
@@ -506,7 +539,8 @@ function FlingPoo ()
 	if (fire2) 
 	{
 		//var PooChainClone = Instantiate(PooChainSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
-	    PCScript.Fire(transform.position, angle, power);
+	    //PCScript.Fire(transform.position, angle, power);
+	    networkView.RPC("Fire2", RPCMode.All, transform.position, power, angle);
 	    fire2 = false;
 	    //PooChainClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
 	    //fire2 = false;
@@ -517,12 +551,33 @@ function FlingPoo ()
 	    //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
 	    //var Mirv = Network.Instantiate(MirvClone, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(angle), Mathf.PI / 2),Vector3.up),0);
 //	    Mirv.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
-	    MirvScript.Fire(transform.position, angle, power);
+		networkView.RPC("Fire", RPCMode.All, transform.position, power, angle);
+	    //MirvScript.Fire(transform.position, angle, power);
 	    fire1 = false;
 	    //MirvClone.rigidbody.AddForce(Vector3 (Mathf.Cos(angle)*power, Mathf.Sin(angle)*power, 0.0));
 	    //Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
 	    //fire1 = false;
     }
+}
+
+@RPC
+function Fire(position1: Vector3, power1: float, angle1: float)
+{
+	var Mirv = Instantiate(MirvClone, position1 + Vector3 (Mathf.Cos(angle1) * MirvClone.gameObject.rigidbody.transform.localScale.y, Mathf.Sin(angle1) * MirvClone.gameObject.rigidbody.transform.localScale.y, 0.0), Quaternion.identity);
+	Mirv.rigidbody.AddForce(Vector3 (Mathf.Cos(angle1)*power1, Mathf.Sin(angle1)*power1, 0.0));
+}
+
+@RPC
+function Fire2(position1: Vector3, power4: float, angle4: float)
+{
+	PooChainCloneHead = Instantiate(PooChainLinkClone, position1 + new Vector3(0.0f,2.0f,0.0f), Quaternion.LookRotation(Vector3(Mathf.Cos(angle4 - Mathf.PI/2),Mathf.Sin(angle4 - Mathf.PI/2),0.0),Vector3.right));
+	PooChainCloneHead.rigidbody.AddForce(Mathf.Cos(angle4) * power4, Mathf.Sin(angle4) * power4, 0.0);
+	PooChainClonePrevious = PooChainCloneHead;
+	spawnPosition = position1;
+	angle1 = angle4;
+	power1 = power4;
+	counter69++;
+	Debug.Log("c4 " + counter69);
 }
 
 function OnTriggerEnter(other: Collider)
