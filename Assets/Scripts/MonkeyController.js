@@ -24,6 +24,8 @@ var MirvClone: GameObject;
 //var PooChainSpawnerPrefab: GameObject;
 var DrillerSpawnerPrefab: GameObject;
 var IceCuboidSpawnerPrefab: GameObject;
+var Mirv44: GameObject;//angle indicator
+var MirvClone44: GameObject;
 
 static var PooChainClonePrevious: GameObject;
 var PooChainLinkClone: GameObject;
@@ -160,6 +162,7 @@ private var lastPlatformVelocity : Vector3;
 private var sprite : GameObject;
 
 function Awake () {
+	Mirv44 = Instantiate(MirvClone44, Vector3 (0.0, 0.0, 0.0), Quaternion.identity);
 	movement.direction = transform.TransformDirection (Vector3.forward);
 	controller = GetComponent (CharacterController) as CharacterController;
 	sprite = transform.Find("Sprite").gameObject;
@@ -344,6 +347,9 @@ function DidJump () {
 //does jumping and hitting your head make you zero y velocity???
 function FixedUpdate() 
 {
+	
+	Mirv44.transform.position = this.transform.position + Vector3 (Mathf.Cos(angle) * 4.0, Mathf.Sin(angle) * 4.0, 0.0);
+
 	Debug.Log("counter69 " + counter69);
 	//if (PooChainClonePrevious != null)
 	if (counter69 > 0)
