@@ -379,12 +379,12 @@ function FixedUpdate()
 }
 function TwoSeconds()
 {	
-	yield WaitForSeconds(2.0);
+	yield WaitForSeconds(4.0);
 	canMirv = true;
 }
 function FiveSeconds()
 {
-	yield WaitForSeconds(5.0);
+	yield WaitForSeconds(7.0);
 	canChain = true;
 }
 

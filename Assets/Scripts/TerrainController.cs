@@ -26,7 +26,7 @@ public class TerrainController : MonoBehaviour
 	public int numSegments;
 	public float width;
 	public float height;
-	float explosionRadius = 5.0f;
+	float explosionRadius = 3.5f;
 
 	float EPSILON = .0001f;
 
