@@ -22,8 +22,8 @@ static var power: float;
 
 var MirvClone: GameObject;
 //var PooChainSpawnerPrefab: GameObject;
-var DrillerSpawnerPrefab: GameObject;
-var IceCuboidSpawnerPrefab: GameObject;
+var DrillerClone: GameObject;
+var RollerClone: GameObject;
 var Mirv44: GameObject;//angle indicator
 var MirvClone44: GameObject;
 
@@ -37,6 +37,8 @@ static var power1: float;
 
 var canMirv: boolean = true;
 var canChain: boolean = true;
+var canDrill: boolean = true;
+var canRoll: boolean = true;
 
 //var MirvSpawner: GameObject;
 //var MirvScript : MirvSpawnerScript = MirvSpawner.GetComponent(MirvSpawnerScript);
@@ -98,9 +100,9 @@ class MonkeyControllerJumping {
 	var enabled = true;
 
 	// How high do we jump when pressing jump and letting go immediately
-	var height = 0.5;
+	var height = 2.0;
 	// We add extraHeight units (meters) on top when holding the button down longer while jumping
-	var extraHeight = 1.6;
+	var extraHeight = 2.5;
 	
 	// How fast does the character change speeds?  Higher is faster.
 	var speedSmoothing = 3.0;
@@ -167,7 +169,7 @@ function Awake () {
 	controller = GetComponent (CharacterController) as CharacterController;
 	sprite = transform.Find("Sprite").gameObject;
 }
-
+//this doesnt even get called anymore since im doing it in networkmanager
 function Spawn () {
 	// reset the character's speed
 	movement.verticalSpeed = 0.0;
@@ -177,7 +179,9 @@ function Spawn () {
 	activePlatform = null;
 	
 	// reset the character's position to the spawnPoint
-	transform.position = spawnPoint.position;
+	//transform.position = spawnPoint.position;
+	//transform.position.x = 0;//Random.Range(0,300);
+	//transform.position.y = 0;
 	
 	sprite.SetActive(true);
 	canControl = true;
@@ -350,7 +354,7 @@ function FixedUpdate()
 	
 	Mirv44.transform.position = this.transform.position + Vector3 (Mathf.Cos(angle) * 4.0, Mathf.Sin(angle) * 4.0, 0.0);
 
-	Debug.Log("counter69 " + counter69);
+	//Debug.Log("counter69 " + counter69);
 	//if (PooChainClonePrevious != null)
 	if (counter69 > 0)
 	{
@@ -387,6 +391,16 @@ function FiveSeconds()
 	yield WaitForSeconds(7.0);
 	canChain = true;
 }
+function SevenSeconds()
+{
+	yield WaitForSeconds(7.0);
+	canDrill = true;
+}
+function Seven1Seconds()
+{
+	yield WaitForSeconds(7.0);
+	canRoll = true;
+}
 
 //might want to make the transition to FixedUpdate()
 function Update () {
@@ -404,11 +418,15 @@ function Update () {
 			canChain = false;
 			FiveSeconds();
 		}
-		if (Input.GetKeyDown ("3")) {
+		if (Input.GetKeyDown ("3") && canDrill) {
 			fire3 = true;
+			canDrill = false;
+			SevenSeconds();
 		}
-		if (Input.GetKeyDown ("4")) {
+		if (Input.GetKeyDown ("4") && canRoll) {
 			fire4 = true;
+			canRoll = false;
+			Seven1Seconds();
 		}
 	
 		UpdateSmoothedMovementDirection();
@@ -516,7 +534,7 @@ function FlingPoo ()
 	}
 	if (p > 0) {
 		power++;
-		Debug.Log("power " + power);
+//		Debug.Log("power " + power);
 	}
 	if (p < 0) {
 		power--;
@@ -530,15 +548,16 @@ function FlingPoo ()
 	
 	//Debug.Log("power" + power);
 	//Debug.Log("angle" + angle);
-	if (fire4) 
+	if (fire4)
 	{
-		var IceCuboidSpawnerClone = Instantiate(IceCuboidSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+		//var IceCuboidSpawnerClone = Instantiate(IceCuboidSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+	    networkView.RPC("Fire4", RPCMode.All, transform.position, power, angle);
 	    fire4 = false;
 	}
 	
 	if (fire3) 
 	{
-		var DrillerClone = Instantiate(DrillerSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
+		networkView.RPC("Fire3", RPCMode.All, transform.position, power, angle);
 	    fire3 = false;
 	}
 	
@@ -552,7 +571,7 @@ function FlingPoo ()
 	    //fire2 = false;
 	}
 	
-	if (fire1) 
+	if (fire1)
 	{
 	    //var MirvClonetClone = Instantiate(MirvSpawnerPrefab, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), transform.rotation);
 	    //var Mirv = Network.Instantiate(MirvClone, transform.position + Vector3 (Mathf.Cos(angle), Mathf.Sin(angle), 0.0), Quaternion.LookRotation(Vector3(0.0, Mathf.Sin(angle), Mathf.PI / 2),Vector3.up),0);
@@ -586,11 +605,25 @@ function Fire2(position1: Vector3, power4: float, angle4: float)
 	Debug.Log("c4 " + counter69);
 }
 
+@RPC
+function Fire3(position: Vector3, power: float, angle: float)
+{
+	var Driller = Instantiate(DrillerClone, position + new Vector3(0.0f,2.0f,0.0f), Quaternion.LookRotation(Vector3(Mathf.Cos(angle - Mathf.PI/2),Mathf.Sin(angle - Mathf.PI/2),0.0),Vector3.right));
+	Driller.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
+}
+
+@RPC
+function Fire4(position: Vector3, power: float, angle: float)
+{
+	var Roller = Instantiate(RollerClone, position + new Vector3(0.0f,2.0f,0.0f), Quaternion.LookRotation(Vector3(Mathf.Cos(angle - Mathf.PI/2),Mathf.Sin(angle - Mathf.PI/2),0.0),Vector3.right));
+	Roller.rigidbody.AddForce(Mathf.Cos(angle) * power, Mathf.Sin(angle) * power, 0.0);
+}
+
 function OnTriggerEnter(other: Collider)
-	{
-		Destroy(this.gameObject);
-		Destroy(other.gameObject);
-    }
+{
+	//Destroy(this.gameObject);
+	//Destroy(other.gameObject);
+}
 
 // Various helper functions below:
 function GetSpeed () {

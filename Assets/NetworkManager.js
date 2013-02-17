@@ -32,6 +32,7 @@ function refreshHostList() {
 
 function spawnPlayer() {
 	var spawnedPlayer = Network.Instantiate(playerPrefab, spawnObject.position, Quaternion.LookRotation(Vector3(Mathf.PI / 2, 0.0, 0.0),Vector3.up), 0);
+	spawnedPlayer.transform.position.x = Random.Range(1,299);
 	return spawnedPlayer.transform;
 }
 
@@ -40,7 +41,7 @@ function OnServerInitialized() {
 	camScrolling.SetTarget(spawnPlayer());
 }
 
-function OnConnectedToServer() 
+function OnConnectedToServer()
 {
 	camScrolling.SetTarget(spawnPlayer());
 }

@@ -603,7 +603,7 @@ public class TerrainController : MonoBehaviour
 			{
 				newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
 				newBreakListCount++;
-				Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 				continue;
 			}
 			//if final pass through loop and lowestRight has been used or does not exist
@@ -611,7 +611,7 @@ public class TerrainController : MonoBehaviour
 			{
 				newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
 				newBreakListCount++;
-				Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+				//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 				continue;
 			}
 			//if first pass through loop, sets start break
@@ -639,7 +639,7 @@ public class TerrainController : MonoBehaviour
 					newBreakList[newBreakListCount] = new BreakObject(startBreak, lowestRightPoint);
 					newBreakListCount++;
 					lowestRightPointUsed = true;
-					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					if (!lowestLeftPointUsed && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
 					{
 						Debug.Log ("should never happen?================lowestLeft = startBreak but not first break");//maybe?
@@ -662,7 +662,7 @@ public class TerrainController : MonoBehaviour
 						{
 							newBreakList[newBreakListCount] = new BreakObject(startBreak, firstPassCircleIntersects[s]);
 							newBreakListCount++;
-							Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+							//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 							startBreak = firstPassCircleIntersects[s + 1];
 							startBreakIsLeftPoint = false;
 							s++;
@@ -678,7 +678,7 @@ public class TerrainController : MonoBehaviour
 					newBreakListCount++;
 					if (!lowestLeftPointUsed && lowestLeftPoint.index != 666 && firstPassCircleIntersects[s + 1].index >= lowestLeftPoint.index)
 					{
-						Debug.Log ("used my kewl tricks");
+						//Debug.Log ("used my kewl tricks");
 						startBreak = lowestLeftPoint;
 						lowestLeftPointUsed = true;
 					}
@@ -686,7 +686,7 @@ public class TerrainController : MonoBehaviour
 					{
 						startBreak = firstPassCircleIntersects[s + 1];
 					}
-					Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
+					//Debug.Log (newBreakList[newBreakListCount - 1].start.index + "to" + newBreakList[newBreakListCount - 1].end.index);
 					s++;
 					continue;
 				}
@@ -725,10 +725,10 @@ public class TerrainController : MonoBehaviour
 		fullMagicListCount = 0;
 		
 	}
-	void OnTriggerEnter(Collider other) 
+	void OnTriggerEnter(Collider other)
 	{
-		Explode(other.transform.position);
-		Destroy(other.gameObject);
+		//Explode(other.transform.position);
+		//Destroy(other.gameObject);
     }
 	
 	void OnPlayerConnected()
